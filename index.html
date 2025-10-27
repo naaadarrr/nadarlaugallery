@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Photo Gallery</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Scrolling header -->
+  <header class="site-header">
+    <h1 id="gallery-title">Nadar Lau</h1>
+  </header>
+
+  <!-- Image grid -->
+  <main>
+    <div class="gallery" id="gallery">
+      <img src="assets/Images/IMG_0718.jpg" alt="Photo 1" />
+      <img src="assets/Images/IMG_1643.jpg" alt="Photo 2" />
+      <img src="assets/Images/IMG_20251003_215131.JPG" alt="Photo 3" />
+      <img src="assets/Images/IMG_20251003_215311.jpg" alt="Photo 4" />
+      <img src="assets/Images/IMG_20251004_000142.JPG" alt="Photo 5" />
+      <img src="assets/Images/IMG_20251005_202325.JPG" alt="Photo 6" />
+      <img src="assets/Images/IMG_20251005_202927.jpg" alt="Photo 7" />
+      <img src="assets/Images/IMG_20251005_220157.JPG" alt="Photo 8" />
+      <img src="assets/Images/IMG_20251005_224542.jpg" alt="Photo 9" />
+      <img src="assets/Images/IMG_20251006_125516.JPG" alt="Photo 10" />
+      <img src="assets/Images/IMG_20251006_131509.JPG" alt="Photo 11" />
+      <img src="assets/Images/IMG_20251006_194119.JPG" alt="Photo 12" />
+      <img src="assets/Images/IMG_2064.jpg" alt="Photo 13" />
+      <img src="assets/Images/IMG_9192.jpg" alt="Photo 14" />
+    </div>
+  </main>
+
+  <!-- Lightbox overlay -->
+  <div id="lightbox" class="lightbox hidden">
+    <span class="close" id="close-btn">&times;</span>
+    <span class="nav prev" id="prev-btn">&#10094;</span>
+    <img id="lightbox-img" src="" alt="Enlarged photo" />
+    <span class="nav next" id="next-btn">&#10095;</span>
+  </div>
+
+  <!-- Footer with info blocks -->
+  <footer class="site-footer">
+    <div id="visitor-count" class="info-block"></div>
+    <div id="time-display" class="info-block"></div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

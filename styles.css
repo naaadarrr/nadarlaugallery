@@ -1,0 +1,130 @@
+/* General reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #fff; color: #111; }
+
+/* Fixed header */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  z-index: 1000;
+}
+.site-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0;
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+}
+
+/* Main content spacing */
+main { 
+  padding: 0.5rem;
+  padding-top: 5.8rem;
+  padding-bottom: 4rem;
+}
+
+/* Gallery grid */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6rem 2rem;
+  align-items: end;
+}
+.gallery img {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  object-fit: cover;
+  background: #e0e0e0;
+}
+
+/* Tablet (≤ 900px) */
+@media (max-width: 900px) {
+  .gallery { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Mobile (≤ 600px) */
+@media (max-width: 600px) {
+  .gallery { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Lightbox overlay */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.lightbox.hidden { display: none; }
+.lightbox img {
+  max-width: 80vw;
+  max-height: 80vh;
+  border-radius: 4px;
+}
+/* Close & nav buttons */
+.lightbox .close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border-radius: 50%;
+  font-weight: 100;
+  line-height: 1;
+}
+.lightbox .nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border-radius: 50%;
+  font-weight: 100;
+  line-height: 1;
+}
+.lightbox .prev { left: 40px; }
+.lightbox .next { right: 40px; }
+
+/* Footer with info blocks */
+.site-footer {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+}
+.info-block {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: #111;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: #fff;
+}
