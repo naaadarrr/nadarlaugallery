@@ -53,29 +53,55 @@ lightbox.addEventListener('touchend', (e) => {
   }
 });
 
-// Visitor counter (stored in localStorage)
-function getVisitorCount() {
-  let count = localStorage.getItem('visitorCount');
-  if (!count) {
-    count = Math.floor(Math.random() * 1000) + 100; // Start with random number
-    localStorage.setItem('visitorCount', count);
+// Real visitor counter using a simple API
+let visitorCount = 0;
+
+// Function to get visitor count from a simple counter service
+async function getVisitorCount() {
+  try {
+    // Using a free counter service - you can replace with your own backend
+    const response = await fetch('https://api.countapi.xyz/hit/nadargallery/visits');
+    const data = await response.json();
+    return data.value || 0;
+  } catch (error) {
+    // Fallback to localStorage if API fails
+    let count = localStorage.getItem('visitorCount');
+    if (!count) {
+      count = 1;
+      localStorage.setItem('visitorCount', count);
+    } else {
+      count = parseInt(count) + 1;
+      localStorage.setItem('visitorCount', count);
+    }
+    return count;
   }
-  return parseInt(count);
 }
 
 // Live clock and visitor count in separate blocks
 const visitorEl = document.getElementById('visitor-count');
 const timeEl = document.getElementById('time-display');
 
-function updateInfo() {
+async function updateInfo() {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
-  const visitors = getVisitorCount();
   
-  visitorEl.textContent = `${visitors} visitors`;
+  // Get visitor count only once when page loads
+  if (visitorCount === 0) {
+    visitorCount = await getVisitorCount();
+  }
+  
+  visitorEl.textContent = `${visitorCount} visitors`;
   timeEl.textContent = `${hh}:${mm}:${ss}`;
 }
-setInterval(updateInfo, 1000);
+
+// Update time every second, but only get visitor count once
 updateInfo();
+setInterval(() => {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  timeEl.textContent = `${hh}:${mm}:${ss}`;
+}, 1000);
