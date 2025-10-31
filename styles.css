@@ -11,6 +11,9 @@ body { font-family: Arial, sans-serif; background: #fff; color: #111; }
   padding: 0.5rem;
   background: transparent;
   z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 .site-header h1 {
   font-size: 1.5rem;
@@ -23,36 +26,176 @@ body { font-family: Arial, sans-serif; background: #fff; color: #111; }
   background: #fff;
 }
 
+/* View toggle buttons */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  height: calc(1.5rem + 16px + 2px); /* Match h1 height: font-size + padding + border */
+}
+.toggle-btn {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: #666;
+  background: transparent;
+  border: none;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: 60px;
+  /* Prevent width change when font-weight changes */
+  position: relative;
+}
+.toggle-btn::before {
+  content: attr(data-text);
+  font-weight: 600;
+  height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+  display: block;
+}
+.toggle-btn:last-child {
+  border-right: none;
+}
+.toggle-btn:hover {
+  color: #111;
+  background: rgba(0, 0, 0, 0.03);
+}
+.toggle-btn.active {
+  color: #111;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
+}
+.toggle-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Main content spacing */
 main { 
   padding: 0.5rem;
   padding-top: 5.8rem;
-  padding-bottom: 4rem;
+  padding-bottom: 2rem;
 }
 
-/* Gallery grid */
-.gallery {
+/* Gallery item wrapper */
+.gallery .item {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  will-change: transform;
+}
+
+/* Gallery transition effects - handled by FLIP animation in JS */
+.gallery img {
+  display: block;
+}
+.gallery figcaption {
+  transition: opacity 0.3s ease;
+}
+
+/* Gallery grid mode (default) */
+.gallery.grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6rem 2rem;
   align-items: end;
 }
-.gallery img {
+.gallery.grid .item {
+  display: block;
+}
+.gallery.grid img {
   width: 100%;
   height: auto;
   cursor: pointer;
   object-fit: cover;
   background: #e0e0e0;
 }
+.gallery.grid figcaption {
+  opacity: 0;
+  display: none;
+}
+
+/* Gallery list mode */
+.gallery.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.gallery.list .item {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.gallery.list .item:last-child {
+  border-bottom: none;
+}
+.gallery.list img {
+  width: 200px;
+  height: auto;
+  cursor: pointer;
+  object-fit: cover;
+  background: #e0e0e0;
+  flex-shrink: 0;
+}
+.gallery.list figcaption {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex: 1;
+  opacity: 1;
+}
+.gallery.list .item-size {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: #666;
+  flex: 1;
+}
+.gallery.list .item-year {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: #666;
+  text-align: right;
+  flex-shrink: 0;
+}
 
 /* Tablet (≤ 900px) */
 @media (max-width: 900px) {
-  .gallery { grid-template-columns: repeat(3, 1fr); }
+  .gallery.grid { grid-template-columns: repeat(3, 1fr); }
+  .gallery.list img {
+    width: 150px;
+  }
+  .gallery.list figcaption {
+    gap: 1rem;
+  }
 }
 
 /* Mobile (≤ 600px) */
 @media (max-width: 600px) {
-  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .gallery.grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery.list img {
+    width: 100px;
+  }
+  .gallery.list .item {
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  .gallery.list figcaption {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  .gallery.list .item-year {
+    text-align: left;
+  }
 }
 
 /* Lightbox overlay */
@@ -110,21 +253,3 @@ main {
 .lightbox .prev { left: 40px; }
 .lightbox .next { right: 40px; }
 
-/* Footer with info blocks */
-.site-footer {
-  position: fixed;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  z-index: 1000;
-  display: flex;
-  gap: 8px;
-}
-.info-block {
-  font-size: 0.75rem;
-  font-weight: normal;
-  color: #111;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  background: #fff;
-}

@@ -1,5 +1,139 @@
-// Collect gallery images and setup lightbox
+// View toggle functionality
 const gallery = document.getElementById('gallery');
+const btnGrid = document.getElementById('btn-grid');
+const btnList = document.getElementById('btn-list');
+
+// Load saved view preference or default to grid
+const savedView = localStorage.getItem('galleryView') || 'grid';
+setView(savedView, true);
+
+function setView(view, isInitial = false) {
+  if (isInitial) {
+    // No animation on initial load
+    if (view === 'grid') {
+      gallery.classList.remove('list');
+      gallery.classList.add('grid');
+      btnGrid.classList.add('active');
+      btnList.classList.remove('active');
+    } else {
+      gallery.classList.remove('grid');
+      gallery.classList.add('list');
+      btnList.classList.add('active');
+      btnGrid.classList.remove('active');
+    }
+    localStorage.setItem('galleryView', view);
+    return;
+  }
+  
+  // FLIP Animation (First-Last-Invert-Play)
+  const items = Array.from(gallery.querySelectorAll('.item'));
+  const currentScrollY = window.scrollY;
+  
+  // Prevent user from clicking again during animation
+  btnGrid.disabled = true;
+  btnList.disabled = true;
+  
+  // Step 1: First - Record initial positions (of images for more accurate tracking)
+  const firstRects = items.map(item => {
+    const img = item.querySelector('img');
+    return img ? img.getBoundingClientRect() : item.getBoundingClientRect();
+  });
+  
+  // Step 2: Last - Switch layout and get new positions
+  if (view === 'grid') {
+    gallery.classList.remove('list');
+    gallery.classList.add('grid');
+    btnGrid.classList.add('active');
+    btnList.classList.remove('active');
+  } else {
+    gallery.classList.remove('grid');
+    gallery.classList.add('list');
+    btnList.classList.add('active');
+    btnGrid.classList.remove('active');
+  }
+  
+  // Force layout calculation
+  gallery.offsetHeight;
+  
+  const lastRects = items.map(item => {
+    const img = item.querySelector('img');
+    return img ? img.getBoundingClientRect() : item.getBoundingClientRect();
+  });
+  
+  // Step 3: Invert - Calculate deltas and apply transforms
+  items.forEach((item, index) => {
+    const first = firstRects[index];
+    const last = lastRects[index];
+    const deltaX = first.left - last.left;
+    const deltaY = first.top - last.top;
+    const deltaW = first.width / last.width;
+    const deltaH = first.height / last.height;
+    
+    // Apply inverted transform (no transition yet)
+    item.style.transition = 'none';
+    item.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
+    item.style.transformOrigin = 'top left';
+    
+    // Handle figcaption fade
+    const figcaption = item.querySelector('figcaption');
+    if (figcaption) {
+      figcaption.style.transition = 'none';
+      if (view === 'list') {
+        figcaption.style.opacity = '0';
+      }
+    }
+  });
+  
+  // Force reflow
+  gallery.offsetHeight;
+  
+  // Restore scroll position to prevent jump
+  window.scrollTo(0, currentScrollY);
+  
+  // Step 4: Play - Animate to final position
+  requestAnimationFrame(() => {
+    items.forEach((item, index) => {
+      const delay = index * 30; // Stagger delay: 30ms per item
+      item.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
+      item.style.transform = 'none';
+      
+      // Fade in/out figcaption
+      const figcaption = item.querySelector('figcaption');
+      if (figcaption) {
+        figcaption.style.transition = `opacity 0.3s ease ${delay + 100}ms`;
+        if (view === 'list') {
+          figcaption.style.opacity = '1';
+        }
+      }
+    });
+    
+    // Cleanup after animation completes
+    const maxDelay = (items.length - 1) * 30;
+    setTimeout(() => {
+      items.forEach(item => {
+        item.style.transition = '';
+        item.style.transform = '';
+        item.style.transformOrigin = '';
+        const figcaption = item.querySelector('figcaption');
+        if (figcaption) {
+          figcaption.style.transition = '';
+          figcaption.style.opacity = '';
+        }
+      });
+      
+      // Re-enable buttons
+      btnGrid.disabled = false;
+      btnList.disabled = false;
+    }, 500 + maxDelay + 100);
+  });
+  
+  localStorage.setItem('galleryView', view);
+}
+
+btnGrid.addEventListener('click', () => setView('grid'));
+btnList.addEventListener('click', () => setView('list'));
+
+// Collect gallery images and setup lightbox
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
 const closeBtn = document.getElementById('close-btn');
@@ -52,56 +186,3 @@ lightbox.addEventListener('touchend', (e) => {
     diff > 0 ? showPrev() : showNext();
   }
 });
-
-// Real visitor counter using a simple API
-let visitorCount = 0;
-
-// Function to get visitor count from a simple counter service
-async function getVisitorCount() {
-  try {
-    // Using a free counter service - you can replace with your own backend
-    const response = await fetch('https://api.countapi.xyz/hit/nadargallery/visits');
-    const data = await response.json();
-    return data.value || 0;
-  } catch (error) {
-    // Fallback to localStorage if API fails
-    let count = localStorage.getItem('visitorCount');
-    if (!count) {
-      count = 1;
-      localStorage.setItem('visitorCount', count);
-    } else {
-      count = parseInt(count) + 1;
-      localStorage.setItem('visitorCount', count);
-    }
-    return count;
-  }
-}
-
-// Live clock and visitor count in separate blocks
-const visitorEl = document.getElementById('visitor-count');
-const timeEl = document.getElementById('time-display');
-
-async function updateInfo() {
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  
-  // Get visitor count only once when page loads
-  if (visitorCount === 0) {
-    visitorCount = await getVisitorCount();
-  }
-  
-  visitorEl.textContent = `${visitorCount} visitors`;
-  timeEl.textContent = `${hh}:${mm}:${ss}`;
-}
-
-// Update time every second, but only get visitor count once
-updateInfo();
-setInterval(() => {
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  timeEl.textContent = `${hh}:${mm}:${ss}`;
-}, 1000);
