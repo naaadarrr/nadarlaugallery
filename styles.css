@@ -156,13 +156,13 @@ main {
 .gallery.list .item-size {
   font-size: 0.875rem;
   font-weight: normal;
-  color: #666;
+  color: #999;
   flex: 1;
 }
 .gallery.list .item-year {
   font-size: 0.875rem;
   font-weight: normal;
-  color: #666;
+  color: #999;
   text-align: right;
   flex-shrink: 0;
 }
