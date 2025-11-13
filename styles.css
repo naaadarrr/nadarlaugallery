@@ -1,9 +1,13 @@
 /* General reset */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #fff; color: #111; }
 
 /* CSS Variables - Unified design tokens */
 :root {
+  /* Typography - Courier New as primary font */
+  --font-sans: Arial, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --font-app: "Courier New", Courier, monospace, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  
   /* Border radius - set to 0 as per requirements */
   --radius: 0;
   --radius-mobile: 0;
@@ -30,11 +34,55 @@ body { font-family: Arial, sans-serif; background: #fff; color: #111; }
   
   /* Transitions */
   --fade-in-duration: 300ms;
+  --lightbox-fade-duration: 250ms;
   
   /* Focus ring for keyboard navigation */
   --focus-ring-color: #111;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+  
+  /* Thumbnail strip - smaller size, no border */
+  --thumb-size: 48px;
+  --thumb-size-mobile: 36px;
+  --thumb-gap: 6px;
+  
+  /* Skeleton loading colors - subtle grayscale */
+  --skeleton-1: #e8e8e8;
+  --skeleton-2: #f0f0f0;
+  --skeleton-shimmer: rgba(255, 255, 255, 0.6);
+}
+
+/* Global font application - Courier New for all UI */
+html,
+body {
+  font-family: var(--font-app);
+  background: #fff;
+  color: #111;
+  /* Optimize font rendering for monospace */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Adjust line-height for monospace readability */
+  line-height: 1.5;
+}
+
+/* Ensure all form elements and buttons inherit font */
+button,
+input,
+select,
+textarea,
+.toggle-btn {
+  font-family: inherit;
+}
+
+/* Ensure all text elements inherit font */
+h1, h2, h3, h4, h5, h6,
+p, span, div, a,
+figcaption, caption,
+.photo-caption,
+.item-number,
+.item-size,
+.item-year {
+  font-family: inherit;
 }
 
 /* Fixed header */
@@ -138,9 +186,74 @@ main {
 /* Gallery transition effects - handled by FLIP animation in JS */
 .gallery img {
   display: block;
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity var(--fade-in-duration) ease, filter var(--fade-in-duration) ease;
+  /* Ensure image is completely hidden until loaded */
+  visibility: hidden;
+  position: relative; /* Create stacking context */
+  z-index: 1; /* Above skeleton when loaded */
+}
+.gallery img.loaded {
+  opacity: 1;
+  filter: blur(0);
+  visibility: visible;
+  z-index: 3; /* Above skeleton (z-index: 2) */
 }
 .gallery figcaption {
   transition: opacity 0.3s ease;
+}
+
+/* Skeleton loading layer - breathing effect */
+.skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: var(--skeleton-1);
+  border-radius: var(--radius);
+  z-index: 2; /* Higher than image to cover it completely */
+  /* Breathing/pulse animation */
+  animation: breathe 2s ease-in-out infinite;
+  pointer-events: none;
+  /* Will be updated by JS with image-specific grayscale color */
+  min-height: 100px; /* Ensure minimum height for proper coverage */
+}
+
+/* Grid mode: skeleton should only cover image, not caption */
+.gallery.grid .skeleton,
+.gallery.mode-grid .skeleton {
+  /* Only cover image area - positioned relative to img, not item */
+  /* Since img is position: relative, skeleton will be positioned relative to it */
+  /* But skeleton is in item, so we need to match img height */
+  height: auto;
+  bottom: auto;
+  /* Use a wrapper approach: skeleton covers only the image area */
+  /* We'll use JS to set height dynamically, but for now use auto */
+}
+.photo-card.loaded .skeleton,
+.item.loaded .skeleton {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+  z-index: -1; /* Hide behind image when loaded */
+  visibility: hidden; /* Completely hide skeleton when loaded */
+}
+
+/* Breathing animation - subtle pulse effect */
+@keyframes breathe {
+  0%, 100% { 
+    opacity: 0.6;
+  }
+  50% { 
+    opacity: 0.8;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
 }
 
 /* Gallery wrapper - mode-based layout switching */
@@ -159,7 +272,9 @@ main {
 }
 .gallery.grid .item,
 .gallery.mode-grid .item {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 .gallery.grid img,
 .gallery.mode-grid img {
@@ -167,11 +282,48 @@ main {
   height: auto;
   cursor: pointer;
   object-fit: cover;
-  background: #e0e0e0;
+  background: var(--skeleton-1);
+  display: block;
+  position: relative; /* Create positioning context for skeleton */
+  flex-shrink: 0; /* Don't shrink */
 }
 .gallery.grid figcaption,
 .gallery.mode-grid figcaption {
   opacity: 0;
+  display: none;
+}
+
+/* Grid mode caption: P:001 format - only show when image is loaded */
+.gallery.grid .photo-caption,
+.gallery.mode-grid .photo-caption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.4;
+  text-align: left;
+  font-weight: 400;
+  display: none; /* Hidden by default */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  position: relative; /* Ensure it's above skeleton */
+  z-index: 3; /* Above skeleton (z-index: 2) */
+  flex-shrink: 0; /* Don't shrink */
+}
+.gallery.grid .item.loaded .photo-caption,
+.gallery.mode-grid .item.loaded .photo-caption {
+  display: block; /* Show only when image is loaded */
+  opacity: 1;
+}
+.gallery.grid .photo-caption .caption-index {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Hide captions in List and Feed modes */
+.gallery.list .photo-caption,
+.gallery.mode-list .photo-caption,
+.gallery.feed .photo-caption,
+.gallery.mode-feed .photo-caption {
   display: none;
 }
 
@@ -181,6 +333,10 @@ main {
   .gallery.mode-grid { 
     grid-template-columns: repeat(3, 1fr); 
   }
+  .gallery.grid .photo-caption,
+  .gallery.mode-grid .photo-caption {
+    font-size: 0.8125rem;
+  }
 }
 
 /* Mobile (≤ 600px) */
@@ -188,6 +344,11 @@ main {
   .gallery.grid,
   .gallery.mode-grid { 
     grid-template-columns: repeat(2, 1fr); 
+  }
+  .gallery.grid .photo-caption,
+  .gallery.mode-grid .photo-caption {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
   }
 }
 
@@ -205,6 +366,8 @@ main {
   gap: 2rem;
   padding: 1.2rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  position: relative;
+  aspect-ratio: auto;
 }
 .gallery.list .item:last-child,
 .gallery.mode-list .item:last-child {
@@ -216,8 +379,21 @@ main {
   height: auto;
   cursor: pointer;
   object-fit: cover;
-  background: #e0e0e0;
+  background: var(--skeleton-1);
   flex-shrink: 0;
+  position: relative; /* Create positioning context for skeleton */
+}
+/* List mode: skeleton should only cover image, not caption */
+.gallery.list .skeleton,
+.gallery.mode-list .skeleton {
+  /* Position relative to img, not item */
+  /* Match image dimensions */
+  width: 200px; /* Match image width */
+  height: auto; /* Will be set dynamically by JS */
+  /* Don't extend beyond image */
+  max-width: 200px;
+  left: 0; /* Align with image */
+  top: 0; /* Align with image */
 }
 .gallery.list figcaption,
 .gallery.mode-list figcaption {
@@ -228,6 +404,8 @@ main {
   gap: 2rem;
   flex: 1;
   opacity: 1;
+  position: relative; /* Ensure it's above skeleton */
+  z-index: 3; /* Above skeleton (z-index: 2) */
 }
 
 /* Image number - P:001 format */
@@ -306,6 +484,7 @@ main {
 .gallery.mode-feed .item {
   width: 100%;
   margin-bottom: 0;
+  position: relative;
 }
 
 .gallery.feed img,
@@ -314,7 +493,7 @@ main {
   height: auto;
   cursor: pointer;
   object-fit: contain;
-  background: #e0e0e0;
+  background: var(--skeleton-1);
 }
 
 .gallery.feed figcaption,
@@ -346,6 +525,14 @@ main {
   }
 }
 
+/* Reduced motion - disable blur transitions */
+@media (prefers-reduced-motion: reduce) {
+  .gallery img {
+    filter: none !important;
+    transition: opacity var(--fade-in-duration) ease;
+  }
+}
+
 /* ============================================
    Lightbox overlay
    ============================================ */
@@ -354,16 +541,23 @@ main {
   inset: 0;
   background: #fff;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 2000;
+  /* Ensure thumbnail strip doesn't cause page overflow */
+  overflow: hidden;
 }
 .lightbox.hidden { display: none; }
 .lightbox img {
   max-width: 95vw;
-  max-height: 95vh;
-  /* Border radius set to 0 to match gallery */
+  /* Reserve space for thumbnail strip at bottom */
+  max-height: calc(95vh - var(--thumb-size) - var(--thumb-gap) * 2 - 20px);
+  /* Border radius unified via CSS variable */
   border-radius: var(--radius);
+  transition: opacity var(--lightbox-fade-duration) ease, transform var(--lightbox-fade-duration) ease;
+  /* Ensure main image doesn't overlap with thumbnails */
+  margin-bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2);
 }
 /* Close & nav buttons */
 .lightbox .close {
@@ -428,4 +622,145 @@ main {
   }
   .lightbox .prev { left: 10px; }
   .lightbox .next { right: 10px; }
+  .lightbox img {
+    max-height: calc(95vh - var(--thumb-size-mobile) - var(--thumb-gap) * 2 - 20px);
+    margin-bottom: calc(var(--thumb-size-mobile) + var(--thumb-gap) * 2);
+  }
+}
+
+/* ============================================
+   Lightbox thumbnail strip - CENTERED, SMALLER, NO BORDER
+   ============================================ */
+.lb-thumbs-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--thumb-gap);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.lb-thumbs {
+  display: flex;
+  gap: var(--thumb-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Smooth scrolling with momentum on mobile */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  /* Center the strip content */
+  justify-content: center;
+  max-width: 100%;
+}
+.lb-thumbs::-webkit-scrollbar {
+  height: 6px;
+}
+.lb-thumbs::-webkit-scrollbar-track {
+  background: transparent;
+}
+.lb-thumbs::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.lb-thumbs::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Thumbnail button - smaller, no border */
+.lb-thumb {
+  flex-shrink: 0;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  /* Ensure minimum touch target on mobile */
+  min-width: var(--thumb-size);
+  min-height: var(--thumb-size);
+  /* No border for selected state */
+  outline: none;
+  box-shadow: none;
+}
+
+.lb-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Unified border radius via CSS variable */
+  border-radius: var(--radius);
+  background: var(--image-placeholder-bg);
+  transition: opacity 0.2s ease;
+}
+
+/* Non-selected thumbnails: opacity 0.2 */
+.lb-thumb:not([aria-selected="true"]) img {
+  opacity: 0.2;
+}
+
+/* Selected thumbnail: opacity 1, no border */
+.lb-thumb[aria-selected="true"] img {
+  opacity: 1;
+}
+
+/* Thumbnail hover state */
+.lb-thumb:hover {
+  transform: scale(1.05);
+}
+.lb-thumb:hover img {
+  opacity: 0.6;
+}
+.lb-thumb[aria-selected="true"]:hover img {
+  opacity: 1;
+}
+
+/* Focus state for keyboard navigation */
+.lb-thumb:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Thumbnail skeleton */
+.lb-thumb .skeleton {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+}
+
+/* Mobile thumbnail adjustments */
+@media (max-width: 640px) {
+  .lb-thumb {
+    width: var(--thumb-size-mobile);
+    height: var(--thumb-size-mobile);
+    min-width: var(--thumb-size-mobile);
+    min-height: var(--thumb-size-mobile);
+    border-radius: var(--radius-mobile);
+  }
+  
+  .lb-thumb img {
+    border-radius: var(--radius-mobile);
+  }
+  
+  .lb-thumb .skeleton {
+    width: var(--thumb-size-mobile);
+    height: var(--thumb-size-mobile);
+  }
+  
+  .lb-thumbs-wrapper {
+    padding: var(--thumb-gap);
+  }
 }
