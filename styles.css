@@ -120,7 +120,7 @@ figcaption, caption,
 .toggle-btn {
   font-size: 16px;
   font-weight: 600;
-  color: #666;
+  color: rgb(153, 153, 153); /* Unselected gray */
   background: transparent;
   border: none;
   padding: 8px 20px;
@@ -581,7 +581,7 @@ main {
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
-  color: #666; /* Default gray */
+  color: rgb(153, 153, 153); /* Default gray */
   cursor: pointer;
   background: transparent;
   border: none;
