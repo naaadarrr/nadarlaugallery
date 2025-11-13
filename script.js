@@ -1,7 +1,9 @@
-// View toggle functionality
+// View toggle functionality - Based on main branch FLIP animation
 const gallery = document.getElementById('gallery');
+const galleryContainer = gallery.closest('.gallery-container');
 const btnGrid = document.getElementById('btn-grid');
 const btnList = document.getElementById('btn-list');
+const btnFeed = document.getElementById('btn-feed');
 
 // Load saved view preference or default to grid
 const savedView = localStorage.getItem('galleryView') || 'grid';
@@ -11,27 +13,46 @@ function setView(view, isInitial = false) {
   if (isInitial) {
     // No animation on initial load
     if (view === 'grid') {
-      gallery.classList.remove('list');
-      gallery.classList.add('grid');
+      gallery.classList.remove('list', 'feed', 'mode-list', 'mode-feed');
+      gallery.classList.add('grid', 'mode-grid');
       btnGrid.classList.add('active');
       btnList.classList.remove('active');
-    } else {
-      gallery.classList.remove('grid');
-      gallery.classList.add('list');
+      btnFeed.classList.remove('active');
+    } else if (view === 'list') {
+      gallery.classList.remove('grid', 'feed', 'mode-grid', 'mode-feed');
+      gallery.classList.add('list', 'mode-list');
       btnList.classList.add('active');
       btnGrid.classList.remove('active');
+      btnFeed.classList.remove('active');
+    } else if (view === 'feed') {
+      gallery.classList.remove('grid', 'list', 'mode-grid', 'mode-list');
+      gallery.classList.add('feed', 'mode-feed');
+      btnFeed.classList.add('active');
+      btnGrid.classList.remove('active');
+      btnList.classList.remove('active');
     }
+    
+    // Update container class for feed mode
+    if (galleryContainer) {
+      if (view === 'feed') {
+        galleryContainer.classList.add('feed-mode');
+      } else {
+        galleryContainer.classList.remove('feed-mode');
+      }
+    }
+    
     localStorage.setItem('galleryView', view);
     return;
   }
   
-  // FLIP Animation (First-Last-Invert-Play)
+  // FLIP Animation (First-Last-Invert-Play) - Exact implementation from main branch
   const items = Array.from(gallery.querySelectorAll('.item'));
   const currentScrollY = window.scrollY;
   
   // Prevent user from clicking again during animation
   btnGrid.disabled = true;
   btnList.disabled = true;
+  btnFeed.disabled = true;
   
   // Step 1: First - Record initial positions (of images for more accurate tracking)
   const firstRects = items.map(item => {
@@ -41,15 +62,32 @@ function setView(view, isInitial = false) {
   
   // Step 2: Last - Switch layout and get new positions
   if (view === 'grid') {
-    gallery.classList.remove('list');
-    gallery.classList.add('grid');
+    gallery.classList.remove('list', 'feed', 'mode-list', 'mode-feed');
+    gallery.classList.add('grid', 'mode-grid');
     btnGrid.classList.add('active');
     btnList.classList.remove('active');
-  } else {
-    gallery.classList.remove('grid');
-    gallery.classList.add('list');
+    btnFeed.classList.remove('active');
+  } else if (view === 'list') {
+    gallery.classList.remove('grid', 'feed', 'mode-grid', 'mode-feed');
+    gallery.classList.add('list', 'mode-list');
     btnList.classList.add('active');
     btnGrid.classList.remove('active');
+    btnFeed.classList.remove('active');
+  } else if (view === 'feed') {
+    gallery.classList.remove('grid', 'list', 'mode-grid', 'mode-list');
+    gallery.classList.add('feed', 'mode-feed');
+    btnFeed.classList.add('active');
+    btnGrid.classList.remove('active');
+    btnList.classList.remove('active');
+  }
+  
+  // Update container class for feed mode
+  if (galleryContainer) {
+    if (view === 'feed') {
+      galleryContainer.classList.add('feed-mode');
+    } else {
+      galleryContainer.classList.remove('feed-mode');
+    }
   }
   
   // Force layout calculation
@@ -124,6 +162,7 @@ function setView(view, isInitial = false) {
       // Re-enable buttons
       btnGrid.disabled = false;
       btnList.disabled = false;
+      btnFeed.disabled = false;
     }, 500 + maxDelay + 100);
   });
   
@@ -132,6 +171,7 @@ function setView(view, isInitial = false) {
 
 btnGrid.addEventListener('click', () => setView('grid'));
 btnList.addEventListener('click', () => setView('list'));
+btnFeed.addEventListener('click', () => setView('feed'));
 
 // Collect gallery images and setup lightbox
 const lightbox = document.getElementById('lightbox');
@@ -147,14 +187,20 @@ function openLightbox(index) {
   currentIndex = index;
   lightboxImg.src = images[index].src;
   lightbox.classList.remove('hidden');
+  // Prevent body scroll when lightbox is open
+  document.body.style.overflow = 'hidden';
 }
+
 function closeLightbox() {
   lightbox.classList.add('hidden');
+  document.body.style.overflow = '';
 }
+
 function showPrev() {
   currentIndex = (currentIndex - 1 + images.length) % images.length;
   lightboxImg.src = images[currentIndex].src;
 }
+
 function showNext() {
   currentIndex = (currentIndex + 1) % images.length;
   lightboxImg.src = images[currentIndex].src;
@@ -185,4 +231,27 @@ lightbox.addEventListener('touchend', (e) => {
   if (Math.abs(diff) > 50) {
     diff > 0 ? showPrev() : showNext();
   }
+});
+
+// Image loading and fade-in effect
+function handleImageLoad(img) {
+  // Check if image is already loaded (cached)
+  if (img.complete && img.naturalHeight !== 0) {
+    img.classList.add('loaded');
+  } else {
+    // Wait for load event
+    img.addEventListener('load', function() {
+      img.classList.add('loaded');
+    }, { once: true });
+    
+    // Fallback: if load event doesn't fire (e.g., error), still show image
+    img.addEventListener('error', function() {
+      img.classList.add('loaded');
+    }, { once: true });
+  }
+}
+
+// Initialize image loading for all gallery images
+images.forEach(img => {
+  handleImageLoad(img);
 });
