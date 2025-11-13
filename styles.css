@@ -581,7 +581,7 @@ main {
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
-  color: rgb(17, 17, 17); /* Default gray */
+  color: #666; /* Default gray */
   cursor: pointer;
   background: transparent;
   border: none;
@@ -590,7 +590,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
+  transition: color 0.1s ease;
   min-width: 44px;
   min-height: 44px;
   user-select: none;
@@ -611,14 +611,14 @@ main {
 
 .lightbox .close:hover,
 .lightbox .nav:hover {
-  color: #000 !important; /* Black on hover - ensure it overrides */
+  color: #000; /* Black on hover */
 }
 
 .lightbox .close:focus-visible,
 .lightbox .nav:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
-  color: #000 !important;
+  color: #000;
 }
 
 /* Mobile lightbox adjustments */
