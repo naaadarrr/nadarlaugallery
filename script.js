@@ -594,18 +594,47 @@ async function loadThumbnail(thumbBtn, imgSrc) {
       thumbBtn.insertBefore(skeleton, thumbImg);
     }
     
-    const imageLoader = new Image();
-    imageLoader.onload = () => {
-      thumbImg.src = imgSrc;
+    // Function to hide skeleton and mark as loaded
+    const hideSkeleton = () => {
+      if (thumbImg.classList.contains('loaded')) return; // Already processed
       thumbImg.classList.add('loaded');
+      // Hide skeleton completely
       skeleton.style.opacity = '0';
+      skeleton.style.visibility = 'hidden';
+      skeleton.style.zIndex = '-1';
       resolve();
     };
-    imageLoader.onerror = () => {
+    
+    // Error handler
+    const handleError = () => {
+      if (thumbImg.classList.contains('loaded')) return; // Already processed
+      // Hide skeleton even on error
       skeleton.style.opacity = '0';
+      skeleton.style.visibility = 'hidden';
+      skeleton.style.zIndex = '-1';
+      // Still mark as loaded to show the broken image icon
+      thumbImg.classList.add('loaded');
       resolve(); // Still resolve to avoid blocking
     };
-    imageLoader.src = imgSrc;
+    
+    // Wait for thumbnail image to actually load
+    thumbImg.addEventListener('load', hideSkeleton, { once: true });
+    thumbImg.addEventListener('error', handleError, { once: true });
+    
+    // Set src to trigger loading
+    thumbImg.src = imgSrc;
+    
+    // Check if image is already loaded (cached) AFTER setting src
+    // Use requestAnimationFrame to ensure src is set and browser has processed it
+    requestAnimationFrame(() => {
+      // Double-check after browser processes the src change
+      requestAnimationFrame(() => {
+        if (thumbImg.complete && thumbImg.naturalHeight !== 0 && !thumbImg.classList.contains('loaded')) {
+          // Image was cached and loaded immediately - hide skeleton
+          hideSkeleton();
+        }
+      });
+    });
   });
 }
 
@@ -694,7 +723,17 @@ function preloadAdjacentImages() {
  * Updates main image, thumbnail states (opacity), and scrolls to active thumbnail
  */
 function switchToImage(index) {
-  if (index === currentIndex) return;
+  // Validate index
+  if (index < 0 || index >= images.length) {
+    console.warn('Invalid image index:', index);
+    return;
+  }
+  
+  // Check if already showing this image (but allow force update)
+  const newSrc = images[index].src;
+  if (index === currentIndex && lightboxImg.src === newSrc && lightboxImg.style.opacity !== '0') {
+    return;
+  }
   
   currentIndex = index;
   
@@ -703,7 +742,7 @@ function switchToImage(index) {
   lightboxImg.style.transform = 'scale(0.98)';
   
   // Update image source
-  lightboxImg.src = images[currentIndex].src;
+  lightboxImg.src = newSrc;
   
   // Fade in new image
   requestAnimationFrame(() => {
@@ -716,7 +755,7 @@ function switchToImage(index) {
   updateThumbnailStates();
   
   // Scroll active thumbnail into view (centered)
-  if (thumbnailButtons[currentIndex]) {
+  if (thumbnailButtons && thumbnailButtons.length > 0 && thumbnailButtons[currentIndex]) {
     thumbnailButtons[currentIndex].scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
@@ -771,20 +810,45 @@ function closeLightbox() {
 }
 
 function showPrev() {
-  currentIndex = (currentIndex - 1 + images.length) % images.length;
-  switchToImage(currentIndex);
+  if (!images || images.length === 0) return;
+  const newIndex = (currentIndex - 1 + images.length) % images.length;
+  switchToImage(newIndex);
 }
 
 function showNext() {
-  currentIndex = (currentIndex + 1) % images.length;
-  switchToImage(currentIndex);
+  if (!images || images.length === 0) return;
+  const newIndex = (currentIndex + 1) % images.length;
+  switchToImage(newIndex);
 }
 
-// Attach click handlers
-images.forEach((img, idx) => img.addEventListener('click', () => openLightbox(idx)));
+// Attach click handlers - ensure DOM is ready
+function attachLightboxHandlers() {
+  // Attach click handlers to gallery images
+  images.forEach((img, idx) => {
+    img.addEventListener('click', () => openLightbox(idx));
+  });
+  
+  // Attach lightbox control handlers
+  if (closeBtn) {
 closeBtn.addEventListener('click', closeLightbox);
+  }
+  
+  if (prevBtn) {
 prevBtn.addEventListener('click', showPrev);
+  }
+  
+  if (nextBtn) {
 nextBtn.addEventListener('click', showNext);
+  }
+}
+
+// Initialize handlers when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', attachLightboxHandlers);
+} else {
+  // Small delay to ensure all elements are ready
+  setTimeout(attachLightboxHandlers, 0);
+}
 
 // Close on Escape key
 window.addEventListener('keydown', (e) => {

@@ -118,14 +118,14 @@ figcaption, caption,
   height: calc(1.5rem + 16px + 2px); /* Match h1 height */
 }
 .toggle-btn {
-  font-size: 0.875rem;
-  font-weight: normal;
+  font-size: 16px;
+  font-weight: 600;
   color: #666;
   background: transparent;
   border: none;
   padding: 8px 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.05s ease, background 0.05s ease;
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   min-width: 60px;
   position: relative;
@@ -165,7 +165,10 @@ figcaption, caption,
 main { 
   padding: 0.5rem;
   padding-top: 5.8rem;
-  padding-bottom: 2rem;
+  padding-bottom: 0;
+  /* Prevent excessive scrolling in Grid mode */
+  min-height: auto;
+  overflow-x: hidden;
 }
 
 /* Gallery container - adapts based on mode */
@@ -269,6 +272,18 @@ main {
   grid-template-columns: repeat(5, 1fr);
   gap: 6rem 2rem;
   align-items: end;
+  /* Control scrolling - prevent excessive blank space */
+  min-height: auto;
+  overflow: visible;
+  /* Limit bottom spacing: use negative margin to offset last row's gap, then add small padding */
+  margin-bottom: -4rem; /* Offset most of the 6rem row gap */
+  padding-bottom: 2rem; /* Final bottom spacing */
+}
+
+/* Reduce bottom gap for last row to prevent excessive scrolling */
+.gallery.grid .item:last-child,
+.gallery.mode-grid .item:last-child {
+  margin-bottom: 0;
 }
 .gallery.grid .item,
 .gallery.mode-grid .item {
@@ -315,8 +330,8 @@ main {
   opacity: 1;
 }
 .gallery.grid .photo-caption .caption-index {
-  font-weight: 600;
-  color: #333;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
 }
 
 /* Hide captions in List and Feed modes */
@@ -411,8 +426,8 @@ main {
 /* Image number - P:001 format */
 .gallery.mode-list .item-number {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: #999;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
   flex-shrink: 0;
   margin-right: 1rem;
 }
@@ -559,60 +574,52 @@ main {
   /* Ensure main image doesn't overlap with thumbnails */
   margin-bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2);
 }
-/* Close & nav buttons */
-.lightbox .close {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 1.5rem;
-  color: #666;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0f0f0;
-  border-radius: 50%;
-  font-weight: 100;
-  line-height: 1;
-  min-width: 44px;
-  min-height: 44px;
-}
-.lightbox .close:hover,
-.lightbox .close:focus-visible {
-  background: #e0e0e0;
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
-}
+/* Close & nav buttons - text labels, no border */
+.lightbox .close,
 .lightbox .nav {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.5rem;
-  color: #666;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(17, 17, 17); /* Default gray */
   cursor: pointer;
-  user-select: none;
-  width: 40px;
-  height: 40px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
-  border-radius: 50%;
-  font-weight: 100;
-  line-height: 1;
+  transition: color 0.15s ease;
   min-width: 44px;
   min-height: 44px;
+  user-select: none;
 }
-.lightbox .nav:hover,
-.lightbox .nav:focus-visible {
-  background: #e0e0e0;
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
+
+.lightbox .close {
+  top: 20px;
+  right: 30px;
 }
+
+.lightbox .nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .lightbox .prev { left: 40px; }
 .lightbox .next { right: 40px; }
+
+.lightbox .close:hover,
+.lightbox .nav:hover {
+  color: #000 !important; /* Black on hover - ensure it overrides */
+}
+
+.lightbox .close:focus-visible,
+.lightbox .nav:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  color: #000 !important;
+}
 
 /* Mobile lightbox adjustments */
 @media (max-width: 640px) {
@@ -706,15 +713,23 @@ main {
   border-radius: var(--radius);
   background: var(--image-placeholder-bg);
   transition: opacity 0.2s ease;
+  position: relative;
+  z-index: 1; /* Above skeleton */
+  opacity: 0; /* Hidden until loaded */
 }
 
-/* Non-selected thumbnails: opacity 0.2 */
-.lb-thumb:not([aria-selected="true"]) img {
-  opacity: 0.2;
+/* Show image when loaded */
+.lb-thumb img.loaded {
+  opacity: 1; /* Base opacity when loaded */
 }
 
-/* Selected thumbnail: opacity 1, no border */
-.lb-thumb[aria-selected="true"] img {
+/* Non-selected thumbnails: opacity 0.5 (50%) (only when loaded) */
+.lb-thumb:not([aria-selected="true"]) img.loaded {
+  opacity: 0.5;
+}
+
+/* Selected thumbnail: opacity 1 (only when loaded) */
+.lb-thumb[aria-selected="true"] img.loaded {
   opacity: 1;
 }
 
@@ -722,10 +737,10 @@ main {
 .lb-thumb:hover {
   transform: scale(1.05);
 }
-.lb-thumb:hover img {
-  opacity: 0.6;
+.lb-thumb:hover img.loaded {
+  opacity: 0.7;
 }
-.lb-thumb[aria-selected="true"]:hover img {
+.lb-thumb[aria-selected="true"]:hover img.loaded {
   opacity: 1;
 }
 
@@ -739,6 +754,18 @@ main {
 .lb-thumb .skeleton {
   width: var(--thumb-size);
   height: var(--thumb-size);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+/* Hide thumbnail skeleton when image is loaded */
+.lb-thumb img.loaded ~ .skeleton,
+.lb-thumb .skeleton[style*="visibility: hidden"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  z-index: -1 !important;
 }
 
 /* Mobile thumbnail adjustments */
