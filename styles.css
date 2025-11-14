@@ -114,7 +114,7 @@ figcaption, caption,
   display: flex;
   gap: 0;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  /* Removed border: 1px solid rgba(0, 0, 0, 0.2); - no rectangular border */
   height: calc(1.5rem + 16px + 2px); /* Match h1 height */
 }
 .toggle-btn {
@@ -151,6 +151,33 @@ figcaption, caption,
   color: #111;
   font-weight: 600;
   background: rgba(0, 0, 0, 0.05);
+}
+
+/* Selected state: always show underline */
+.toggle-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #000;
+}
+
+/* Unselected hover: underline animates left to right */
+.toggle-btn:not(.active)::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: #000;
+  transition: width 0.2s ease-out;
+}
+
+.toggle-btn:not(.active):hover::after {
+  width: 100%;
 }
 .toggle-btn:disabled {
   cursor: not-allowed;
@@ -585,13 +612,13 @@ main {
   cursor: pointer;
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 8px 20px; /* Match tab button padding for consistent spacing */
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.1s ease;
-  min-width: 44px;
+  transition: color 0.05s ease, background 0.05s ease; /* Match tab button transition */
+  min-width: 60px; /* Match tab button min-width */
   min-height: 44px;
   user-select: none;
 }
@@ -612,6 +639,25 @@ main {
 .lightbox .close:hover,
 .lightbox .nav:hover {
   color: #000; /* Black on hover */
+  background: rgba(0, 0, 0, 0.03); /* Match tab button hover background */
+}
+
+/* Hover underline animation - left to right */
+.lightbox .close::after,
+.lightbox .nav::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: #000;
+  transition: width 0.2s ease-out;
+}
+
+.lightbox .close:hover::after,
+.lightbox .nav:hover::after {
+  width: 100%;
 }
 
 .lightbox .close:focus-visible,
