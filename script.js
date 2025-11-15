@@ -435,22 +435,43 @@ async function loadImage(item, img, index) {
 }
 
 /**
- * Reveal image after loading
+ * Reveal image after loading - 从上到下渐进显示
  */
 function revealImage(item, img) {
-  // Add loaded class to image first
+  // 🔥 从上到下显示动画
+  
+  // 确保初始状态
+  img.style.clipPath = 'inset(0 0 100% 0)';
+  img.style.transition = 'none';
+  
+  // 强制重绘
+  item.offsetHeight;
+  
+  // 添加 loaded 类
   img.classList.add('loaded');
   
   // Mark card as loaded (this triggers caption display and skeleton hiding)
   // item already has both 'item' and 'photo-card' classes
   item.classList.add('loaded');
   
-  // Hide skeleton completely
+  // 下一帧开始动画
+  requestAnimationFrame(() => {
+    img.style.transition = 'opacity 300ms ease, filter 300ms ease, clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+    img.style.clipPath = 'inset(0 0 0 0)';
+  });
+  
+  // 隐藏 skeleton(同步动画)
   const skeleton = item.querySelector('.skeleton');
   if (skeleton) {
+    skeleton.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease';
+    skeleton.style.clipPath = 'inset(0 0 100% 0)'; // 从下往上隐藏
     skeleton.style.opacity = '0';
-    skeleton.style.visibility = 'hidden';
-    skeleton.style.zIndex = '-1';
+    
+    // 动画结束后完全隐藏
+    setTimeout(() => {
+      skeleton.style.visibility = 'hidden';
+      skeleton.style.zIndex = '-1';
+    }, 800);
   }
   
   loadedCount++;
@@ -460,6 +481,12 @@ function revealImage(item, img) {
     firstViewportLoaded = true;
     gallery.removeAttribute('aria-busy');
   }
+  
+  // 动画结束后清理内联样式
+  setTimeout(() => {
+    img.style.transition = '';
+    img.style.clipPath = '';
+  }, 850);
 }
 
 /**
@@ -571,9 +598,31 @@ const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const thumbnailsContainer = lightbox.querySelector('.lb-thumbs');
 
+// 🔥 新增:创建图片编号显示元素
+let captionElement = lightbox.querySelector('.lb-caption');
+if (!captionElement) {
+  captionElement = document.createElement('div');
+  captionElement.className = 'lb-caption';
+  captionElement.innerHTML = '<span class="lb-index">P:001</span>';
+  
+  // 插入到图片后面,缩略图前面
+  const lbThumbsWrapper = lightbox.querySelector('.lb-thumbs-wrapper');
+  if (lbThumbsWrapper) {
+    lightbox.insertBefore(captionElement, lbThumbsWrapper);
+  } else if (thumbnailsContainer) {
+    lightbox.insertBefore(captionElement, thumbnailsContainer);
+  } else {
+    lightbox.appendChild(captionElement);
+  }
+}
+const captionIndex = captionElement.querySelector('.lb-index');
+
 let currentIndex = 0;
 let thumbnailButtons = [];
 let preloadedImages = {}; // Cache for preloaded images
+// === 新增:保存打开 lightbox 时点击图片的原始位置 ===
+let originalImageRect = null; // 保存点击图片的位置和尺寸
+let originalImageIndex = null; // 保存点击时的图片索引
 
 /**
  * Load thumbnail image with skeleton
@@ -673,23 +722,28 @@ function buildThumbnailStrip() {
       // Error handled in loadThumbnail
     });
     
-    thumbBtn.addEventListener('click', () => switchToImage(index));
+    thumbBtn.addEventListener('click', () => {
+      // 🔥 根据点击的缩略图位置决定滑动方向
+      const direction = index > currentIndex ? 'right' : (index < currentIndex ? 'left' : 'none');
+      switchToImage(index, direction);
+    });
     
     // Keyboard navigation within thumbnail strip
     thumbBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        switchToImage(index);
+        const direction = index > currentIndex ? 'right' : (index < currentIndex ? 'left' : 'none');
+        switchToImage(index, direction);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         const prevIndex = (index - 1 + images.length) % images.length;
         thumbnailButtons[prevIndex].focus();
-        switchToImage(prevIndex);
+        switchToImage(prevIndex, 'left');  // 🔥 添加方向
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         const nextIndex = (index + 1) % images.length;
         thumbnailButtons[nextIndex].focus();
-        switchToImage(nextIndex);
+        switchToImage(nextIndex, 'right');  // 🔥 添加方向
       }
     });
     
@@ -722,48 +776,132 @@ function preloadAdjacentImages() {
  * Switch to a specific image with smooth transition
  * Updates main image, thumbnail states (opacity), and scrolls to active thumbnail
  */
-function switchToImage(index) {
-  // Validate index
-  if (index < 0 || index >= images.length) {
-    console.warn('Invalid image index:', index);
-    return;
-  }
-  
-  // Check if already showing this image (but allow force update)
+function switchToImage(index, direction = 'none') {
+  if (index < 0 || index >= images.length) return;
   const newSrc = images[index].src;
   if (index === currentIndex && lightboxImg.src === newSrc && lightboxImg.style.opacity !== '0') {
     return;
   }
-  
-  currentIndex = index;
-  
-  // Soft crossfade transition with slight scale (180-300ms)
-  lightboxImg.style.opacity = '0';
-  lightboxImg.style.transform = 'scale(0.98)';
-  
-  // Update image source
-  lightboxImg.src = newSrc;
-  
-  // Fade in new image
-  requestAnimationFrame(() => {
-    lightboxImg.style.transition = 'opacity 250ms ease, transform 250ms ease';
-    lightboxImg.style.opacity = '1';
-    lightboxImg.style.transform = 'scale(1)';
-  });
-  
-  // Update thumbnail states (opacity: 1 for selected, 0.2 for others)
-  updateThumbnailStates();
-  
-  // Scroll active thumbnail into view (centered)
-  if (thumbnailButtons && thumbnailButtons.length > 0 && thumbnailButtons[currentIndex]) {
-    thumbnailButtons[currentIndex].scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center'
-    });
+  // 保存原始位置
+  if (images[index]) {
+    const rect = images[index].getBoundingClientRect();
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+    if (isInViewport) {
+      originalImageRect = {
+        left: rect.left + window.scrollX,
+        top: rect.top + window.scrollY,
+        width: rect.width,
+        height: rect.height
+      };
+      originalImageIndex = index;
+    } else {
+      originalImageRect = null;
+      originalImageIndex = null;
+    }
   }
-  
-  // Preload adjacent images for next switch
+  currentIndex = index;
+  if (captionIndex) {
+    const indexStr = String(index + 1).padStart(3, '0');
+    captionIndex.textContent = `P:${indexStr}`;
+  }
+  // 🔥 优化:先预加载新图片，确保加载完成后再切换，避免闪烁
+  const newImage = new Image();
+  newImage.onload = () => {
+    const currentRect = lightboxImg.getBoundingClientRect();
+    if (direction === 'left' || direction === 'right') {
+      // 🔥 优化:创建旧图副本用于滑出，添加硬件加速
+      const oldImg = document.createElement('img');
+      oldImg.src = lightboxImg.src;
+      oldImg.style.cssText = `
+        position: absolute;
+        top: ${currentRect.top}px;
+        left: ${currentRect.left}px;
+        width: ${currentRect.width}px;
+        height: ${currentRect.height}px;
+        max-width: calc(100vw - 200px);
+        max-height: calc(95vh - var(--thumb-size) - var(--thumb-gap) * 2 - 20px);
+        object-fit: contain;
+        z-index: 2000;
+        pointer-events: none;
+        will-change: transform, opacity;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+      `;
+      lightbox.appendChild(oldImg);
+      
+      // 🔥 优化:切换 src，确保新图已加载，避免闪烁
+      lightboxImg.src = newSrc;
+      lightboxImg.style.transition = 'none';
+      lightboxImg.style.opacity = '0';
+      lightboxImg.style.position = 'absolute';
+      lightboxImg.style.willChange = 'transform, opacity';
+      
+      requestAnimationFrame(() => {
+        const newRect = lightboxImg.getBoundingClientRect();
+        const slideDistance = window.innerWidth * 0.3;
+        const initialOffset = direction === 'right' ? slideDistance : -slideDistance;
+        lightboxImg.style.top = `${newRect.top}px`;
+        lightboxImg.style.left = `${newRect.left + initialOffset}px`;
+        lightboxImg.style.width = `${newRect.width}px`;
+        lightboxImg.style.height = `${newRect.height}px`;
+        
+        requestAnimationFrame(() => {
+          const oldOffset = direction === 'right' ? -slideDistance : slideDistance;
+          // 🔥 优化:使用更平滑的缓动函数
+          oldImg.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          oldImg.style.transform = `translateX(${oldOffset}px)`;
+          oldImg.style.opacity = '0';
+          
+          lightboxImg.style.transition = 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          lightboxImg.style.left = `${newRect.left}px`;
+          lightboxImg.style.opacity = '1';
+          
+          setTimeout(() => {
+            oldImg.remove();
+            lightboxImg.style.transition = '';
+            lightboxImg.style.position = '';
+            lightboxImg.style.top = '';
+            lightboxImg.style.left = '';
+            lightboxImg.style.width = '';
+            lightboxImg.style.height = '';
+            lightboxImg.style.willChange = '';
+          }, 400);
+        });
+      });
+    } else {
+      // 🔥 优化:淡入淡出动画，使用更平滑的缓动和缩放
+      lightboxImg.style.opacity = '0';
+      lightboxImg.style.transform = 'scale(0.96)';
+      lightboxImg.style.willChange = 'transform, opacity';
+      lightboxImg.src = newSrc;
+      
+      requestAnimationFrame(() => {
+        const newRect = lightboxImg.getBoundingClientRect();
+        lightboxImg.style.width = `${newRect.width}px`;
+        lightboxImg.style.height = `${newRect.height}px`;
+        
+        requestAnimationFrame(() => {
+          // 🔥 优化:使用更平滑的缓动函数
+          lightboxImg.style.transition = 'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          lightboxImg.style.opacity = '1';
+          lightboxImg.style.transform = 'scale(1)';
+          
+          setTimeout(() => {
+            lightboxImg.style.willChange = '';
+          }, 300);
+        });
+      });
+    }
+  };
+  newImage.onerror = () => {
+    // 即使加载失败也继续，避免卡住
+    lightboxImg.src = newSrc;
+  };
+  newImage.src = newSrc;
+  updateThumbnailStates();
+  if (thumbnailButtons?.[currentIndex]) {
+    thumbnailButtons[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
   preloadAdjacentImages();
 }
 
@@ -784,41 +922,367 @@ function updateThumbnailStates() {
 }
 
 function openLightbox(index) {
-  currentIndex = index;
-  lightboxImg.src = images[index].src;
-  lightboxImg.style.opacity = '1';
-  lightboxImg.style.transform = 'scale(1)';
-  lightboxImg.style.transition = '';
-  lightbox.classList.remove('hidden');
-  // Prevent body scroll when lightbox is open
-  document.body.style.overflow = 'hidden';
+  // 🔥 添加 lightbox-opening 类，触发背景渐隐
+  document.body.classList.add('lightbox-opening');
   
-  // Build thumbnail strip when opening
+  // Check for reduced motion preference
+  if (prefersReducedMotion()) {
+    // Simplified version: direct display, no animation
+    currentIndex = index;
+    lightboxImg.src = images[index].src;
+    lightboxImg.style.opacity = '1';
+    lightboxImg.style.transform = 'scale(1)';
+    lightboxImg.style.transition = '';
+    lightbox.classList.remove('hidden');
+    // 🔥 移除 overflow 内联样式（已由 CSS body.lightbox-opening 控制）
+    // document.body.style.overflow = 'hidden'; // 已由 CSS 类控制
+    buildThumbnailStrip();
+    preloadAdjacentImages();
+    // 🔥 新增:确保缩略图和按钮可见
+    if (thumbnailsContainer) {
+      thumbnailsContainer.style.opacity = '1';
+      thumbnailsContainer.style.transition = '';
+    }
+    if (prevBtn) prevBtn.style.opacity = '1';
+    if (nextBtn) nextBtn.style.opacity = '1';
+    if (closeBtn) closeBtn.style.opacity = '1';
+    if (captionElement) {
+      captionElement.style.opacity = '1';
+      captionElement.style.transition = '';
+    }
+    // 保存原始位置(即使无动画也保存,以便关闭时使用)
+    const clickedImg = images[index];
+    const firstRect = clickedImg.getBoundingClientRect();
+    // === 🔥 保存绝对位置(加上滚动偏移) ===
+    originalImageRect = {
+      left: firstRect.left + window.scrollX,  // 加上水平滚动
+      top: firstRect.top + window.scrollY,    // 加上垂直滚动
+      width: firstRect.width,
+      height: firstRect.height
+    };
+    originalImageIndex = index;
+    
+    // 🔥 新增:更新图片编号显示
+    if (captionIndex) {
+      const indexStr = String(index + 1).padStart(3, '0');
+      captionIndex.textContent = `P:${indexStr}`;
+    }
+    
+    return;
+  }
+
+  currentIndex = index;
+  const clickedImg = images[index];
+  
+  // 🔥 新增:确保按钮和缩略图初始为隐藏状态
+  if (closeBtn) closeBtn.style.opacity = '0';
+  if (prevBtn) prevBtn.style.opacity = '0';
+  if (nextBtn) nextBtn.style.opacity = '0';
+  if (thumbnailsContainer) thumbnailsContainer.style.opacity = '0';
+  
+  // 🔥 新增:更新图片编号显示
+  if (captionIndex) {
+    const indexStr = String(index + 1).padStart(3, '0');
+    captionIndex.textContent = `P:${indexStr}`;
+  }
+  
+  // === FLIP Step 1: First - 记录原始图片位置和尺寸 ===
+  const firstRect = clickedImg.getBoundingClientRect();
+  
+  // === 🔥 新增:保存原始位置(加上滚动偏移,得到绝对位置) ===
+  originalImageRect = {
+    left: firstRect.left + window.scrollX,  // 加上水平滚动
+    top: firstRect.top + window.scrollY,    // 加上垂直滚动
+    width: firstRect.width,
+    height: firstRect.height
+  };
+  originalImageIndex = index; // 保存打开时的图片索引
+  
+  // 🔥 优化:确保图片完全加载后再开始动画
+  const preloadImg = new Image();
+  preloadImg.onload = () => {
+    // 先显示 lightbox 容器(但图片设为不可见)
+    lightbox.classList.remove('hidden');
+    lightboxImg.src = clickedImg.src;
+    lightboxImg.style.opacity = '0'; // 先隐藏,避免闪烁
+    lightboxImg.style.willChange = 'transform, opacity'; // 性能优化
+    
+    // 强制浏览器计算布局
+    lightbox.offsetHeight;
+    
+    // === FLIP Step 2: Last - 获取 lightbox 中图片的最终位置 ===
+    const lastRect = lightboxImg.getBoundingClientRect();
+    
+    // === FLIP Step 3: Invert - 计算位移和缩放差异 ===
+    const deltaX = firstRect.left - lastRect.left;
+    const deltaY = firstRect.top - lastRect.top;
+    const scaleX = firstRect.width / lastRect.width;
+    const scaleY = firstRect.height / lastRect.height;
+    
+    // 将 lightbox 图片瞬间移动到原始位置(无动画)
+    lightboxImg.style.transition = 'none';
+    lightboxImg.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`;
+    lightboxImg.style.transformOrigin = 'top left';
+    lightboxImg.style.opacity = '1'; // 现在显示出来
+    
+    // 背景遮罩同时淡入
+    const backdrop = lightbox; // lightbox 本身就是背景
+    backdrop.style.transition = 'none';
+    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    
+    // 强制重绘,确保初始状态被应用
+    lightbox.offsetHeight;
+    
+    // === FLIP Step 4: Play - 动画到最终位置 ===
+    requestAnimationFrame(() => {
+      // 🔥 优化:使用更平滑的缓动函数
+      lightboxImg.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      lightboxImg.style.transform = 'none'; // 移除偏移,回到中心
+    
+    // 背景同时淡入
+    backdrop.style.transition = 'background-color 0.3s ease';
+    backdrop.style.backgroundColor = ''; // 恢复 CSS 中定义的背景色
+    
+    // 🔥 新增:按钮和缩略图淡入(稍微延迟)
+    setTimeout(() => {
+      if (closeBtn) closeBtn.style.opacity = '';
+      if (prevBtn) prevBtn.style.opacity = '';
+      if (nextBtn) nextBtn.style.opacity = '';
+      if (thumbnailsContainer) thumbnailsContainer.style.opacity = '';
+    }, 150); // 图片动画开始后 150ms 再显示按钮
+    
+    // 动画结束后清理内联样式
+    setTimeout(() => {
+      lightboxImg.style.transition = '';
+      lightboxImg.style.transform = '';
+      lightboxImg.style.transformOrigin = '';
+      lightboxImg.style.willChange = '';
+      backdrop.style.transition = '';
+      backdrop.style.backgroundColor = '';
+    }, 450);
+    });
+  };
+  
+  // 如果图片已缓存，直接触发onload
+  if (clickedImg.complete && clickedImg.naturalHeight !== 0) {
+    preloadImg.src = clickedImg.src;
+  } else {
+    // 等待图片加载完成
+    preloadImg.onerror = () => {
+      // 即使加载失败也继续，避免卡住
+      preloadImg.onload();
+    };
+    preloadImg.src = clickedImg.src;
+  }
+  
+  // 🔥 阻止页面滚动（通过 CSS 类控制，不需要内联样式）
+  // document.body.style.overflow = 'hidden'; // 已由 CSS body.lightbox-opening 控制
+  
+  // 构建缩略图条
   buildThumbnailStrip();
   
-  // Preload adjacent images
+  // 🔥 新增:确保图片编号可见
+  if (captionElement) {
+    captionElement.style.opacity = '1';
+    captionElement.style.transition = '';
+  }
+  
+  // 预加载相邻图片
   preloadAdjacentImages();
 }
 
 function closeLightbox() {
-  lightbox.classList.add('hidden');
-  document.body.style.overflow = '';
-  // Reset image transition
-  lightboxImg.style.transition = '';
-  lightboxImg.style.opacity = '';
-  lightboxImg.style.transform = '';
+  // 🔥 移除 lightbox-opening 类，触发背景渐显
+  document.body.classList.remove('lightbox-opening');
+  
+  if (thumbnailsContainer) thumbnailsContainer.style.opacity = '0';
+  if (prevBtn) prevBtn.style.opacity = '0';
+  if (nextBtn) nextBtn.style.opacity = '0';
+  if (closeBtn) closeBtn.style.opacity = '0';
+  if (captionElement) captionElement.style.opacity = '0';
+
+  if (prefersReducedMotion()) {
+    lightbox.classList.add('hidden');
+    // 🔥 移除 overflow 内联样式（已由 CSS 类控制）
+    // document.body.style.overflow = ''; // 已由 CSS body.lightbox-opening 控制
+    lightboxImg.style = '';
+    lightbox.style = '';
+    if (thumbnailsContainer) thumbnailsContainer.style.opacity = '';
+    if (prevBtn) prevBtn.style.opacity = '';
+    if (nextBtn) nextBtn.style.opacity = '';
+    if (closeBtn) closeBtn.style.opacity = '';
+    if (captionElement) captionElement.style.opacity = '';
+    originalImageRect = null;
+    originalImageIndex = null;
+    return;
+  }
+
+  if (originalImageRect && originalImageIndex !== null) {
+    const originalImg = images[originalImageIndex];
+    
+    // 🔥 优化:先隐藏原始图片,使用opacity而不是visibility以便后续平滑过渡
+    // 同时禁用所有可能的transition，避免尺寸矫正的视觉问题
+    if (originalImg) {
+      originalImg.style.opacity = '0';
+      originalImg.style.transition = 'none';
+      originalImg.style.pointerEvents = 'none'; // 防止点击干扰
+      // 🔥 关键:禁用clip-path动画，避免图片恢复时的视觉变化
+      originalImg.style.clipPath = 'none';
+      // 确保图片尺寸稳定
+      originalImg.style.width = '';
+      originalImg.style.height = '';
+      originalImg.style.transform = '';
+    }
+
+    const currentRect = lightboxImg.getBoundingClientRect();
+    const targetLeft = originalImageRect.left - window.scrollX;
+    const targetTop = originalImageRect.top - window.scrollY;
+    const deltaX = targetLeft - currentRect.left;
+    const deltaY = targetTop - currentRect.top;
+    const scaleX = originalImageRect.width / currentRect.width;
+    const scaleY = originalImageRect.height / currentRect.height;
+
+    // 🔥 优化:清除可能残留的样式,设置初始状态
+    lightboxImg.style.transition = 'none';
+    lightboxImg.style.transform = 'none';
+    lightboxImg.style.transformOrigin = 'top left';
+    lightboxImg.style.opacity = '1';
+    lightboxImg.style.willChange = 'transform, opacity'; // 性能优化
+    
+    // 强制重绘
+    lightbox.offsetHeight;
+
+    // 🔥 优化:使用更平滑的缓动函数和精确的时机控制
+    requestAnimationFrame(() => {
+      lightbox.offsetHeight;
+      
+      requestAnimationFrame(() => {
+        // 🔥 优化:只动画transform，opacity在动画完成时立即切换，避免两个图片同时可见
+        lightboxImg.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        lightboxImg.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scaleX}, ${scaleY})`;
+        lightbox.style.transition = 'background-color 0.35s ease';
+        lightbox.style.backgroundColor = 'rgba(0,0,0,0)';
+        
+        // 🔥 关键优化:监听transform动画完成事件，在动画完成的瞬间无缝切换
+        // 策略：等待transform动画完全完成，然后立即（无过渡）切换，避免两个图片同时可见
+        const handleTransitionEnd = (e) => {
+          // 只处理transform动画完成
+          if (e.target === lightboxImg && e.propertyName === 'transform') {
+            lightboxImg.removeEventListener('transitionend', handleTransitionEnd);
+            
+            if (originalImg) {
+              // 🔥 在动画完成的瞬间，立即切换（无过渡），避免闪烁和抖动
+              // 策略：先准备好原始图片，然后同步切换，确保无缝
+              
+              // 第一步：准备原始图片（但不显示）
+              originalImg.style.transition = 'none';
+              originalImg.style.clipPath = 'none';
+              originalImg.style.transform = '';
+              originalImg.style.width = '';
+              originalImg.style.height = '';
+              originalImg.style.pointerEvents = '';
+              // 先设置为不可见，但准备好所有样式
+              originalImg.style.opacity = '0';
+              originalImg.style.visibility = 'visible';
+              
+              // 强制浏览器计算原始图片的布局，确保尺寸正确
+              originalImg.offsetHeight;
+              
+              // 第二步：在下一帧同步切换（确保浏览器已经计算好布局）
+              requestAnimationFrame(() => {
+                // 再次强制重绘，确保原始图片完全准备好
+                originalImg.offsetHeight;
+                
+                // 第三步：在同一帧内同步切换，避免视觉上的间隙
+                requestAnimationFrame(() => {
+                  // 先隐藏lightbox图片（无过渡）
+                  lightboxImg.style.transition = 'none';
+                  lightboxImg.style.opacity = '0';
+                  
+                  // 立即显示原始图片（无过渡）
+                  originalImg.style.opacity = '1';
+                  
+                  // 强制浏览器重绘，确保切换完成
+                  originalImg.offsetHeight;
+                  
+                  // 在下一帧清理样式和隐藏lightbox
+                  requestAnimationFrame(() => {
+                    if (originalImg) {
+                      // 清理所有内联样式，恢复CSS默认值
+                      originalImg.style.opacity = '';
+                      originalImg.style.transition = '';
+                      originalImg.style.visibility = '';
+                      originalImg.style.pointerEvents = '';
+                      originalImg.style.clipPath = '';
+                      originalImg.style.transform = '';
+                      originalImg.style.width = '';
+                      originalImg.style.height = '';
+                    }
+                    
+                    lightbox.classList.add('hidden');
+                    lightboxImg.style = '';
+                    lightboxImg.style.willChange = '';
+                    lightbox.style = '';
+                    if (thumbnailsContainer) thumbnailsContainer.style.opacity = '';
+                    if (prevBtn) prevBtn.style.opacity = '';
+                    if (nextBtn) nextBtn.style.opacity = '';
+                    if (closeBtn) closeBtn.style.opacity = '';
+                    if (captionElement) captionElement.style.opacity = '';
+                    originalImageRect = null;
+                    originalImageIndex = null;
+                  });
+                });
+              });
+            }
+          }
+        };
+        
+        // 监听transform动画完成
+        lightboxImg.addEventListener('transitionend', handleTransitionEnd);
+        
+        // 备用：如果transitionend事件没有触发（某些情况下），使用setTimeout作为fallback
+        setTimeout(() => {
+          if (lightboxImg.style.opacity !== '0') {
+            lightboxImg.removeEventListener('transitionend', handleTransitionEnd);
+            handleTransitionEnd({ target: lightboxImg, propertyName: 'transform' });
+          }
+        }, 400); // 稍长于动画时间，作为安全网
+      });
+    });
+
+  } else {
+    lightboxImg.style.transition = 'opacity 0.2s ease';
+    lightboxImg.style.opacity = '0';
+    lightbox.style.transition = 'background-color 0.2s ease';
+    lightbox.style.backgroundColor = 'rgba(0,0,0,0)';
+
+    setTimeout(() => {
+      lightbox.classList.add('hidden');
+      // 🔥 移除 overflow 内联样式（已由 CSS body.lightbox-opening 控制）
+      // document.body.style.overflow = ''; // 已由 CSS 类控制
+      lightboxImg.style = '';
+      lightbox.style = '';
+      if (thumbnailsContainer) thumbnailsContainer.style.opacity = '';
+      if (prevBtn) prevBtn.style.opacity = '';
+      if (nextBtn) nextBtn.style.opacity = '';
+      if (closeBtn) closeBtn.style.opacity = '';
+      if (captionElement) captionElement.style.opacity = '';
+      originalImageRect = null;
+      originalImageIndex = null;
+    }, 250);
+  }
 }
 
 function showPrev() {
   if (!images || images.length === 0) return;
   const newIndex = (currentIndex - 1 + images.length) % images.length;
-  switchToImage(newIndex);
+  switchToImage(newIndex, 'left');  // 🔥 添加方向参数
 }
 
 function showNext() {
   if (!images || images.length === 0) return;
   const newIndex = (currentIndex + 1) % images.length;
-  switchToImage(newIndex);
+  switchToImage(newIndex, 'right');  // 🔥 添加方向参数
 }
 
 // Attach click handlers - ensure DOM is ready
@@ -856,9 +1320,9 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeLightbox();
     } else if (e.key === 'ArrowLeft') {
-      showPrev();
+      showPrev();  // 已经包含方向参数
     } else if (e.key === 'ArrowRight') {
-      showNext();
+      showNext();  // 已经包含方向参数
     }
   }
 });

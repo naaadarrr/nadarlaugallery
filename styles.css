@@ -63,6 +63,64 @@ body {
   -moz-osx-font-smoothing: grayscale;
   /* Adjust line-height for monospace readability */
   line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  height: auto; /* 🔥 不固定高度 */
+  overflow-x: hidden;
+  overflow-y: auto; /* 🔥 只有页面滚动 */
+}
+
+/* ==== 全局隐藏滚动条但保留滚动功能 ==== */
+/* 🔥 核心策略：隐藏所有滚动条视觉，避免模式切换时布局抖动 */
+
+/* Webkit 浏览器（Chrome / Edge Chromium / Safari） */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Firefox */
+html,
+body {
+  scrollbar-width: none; /* 无滚动条 */
+}
+
+/* IE / Edge Legacy */
+html,
+body {
+  -ms-overflow-style: none;
+}
+
+/* 🔥 全局隐藏所有内部容器的滚动条（除了lightbox缩略图） */
+/* 确保所有模式都使用body滚动，避免布局抖动 */
+.gallery-container::-webkit-scrollbar,
+.gallery::-webkit-scrollbar,
+#gallery::-webkit-scrollbar,
+main::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.gallery-container,
+.gallery,
+#gallery,
+main {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge Legacy */
+}
+
+/* 🔥 确保lightbox缩略图滚动条保持可见（不受全局隐藏影响） */
+.lb-thumbs {
+  scrollbar-width: thin !important; /* Firefox: 保持thin滚动条 */
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent !important;
+}
+
+.lb-thumbs::-webkit-scrollbar {
+  display: block !important; /* WebKit: 显示滚动条 */
+  height: 6px !important;
 }
 
 /* Ensure all form elements and buttons inherit font */
@@ -193,16 +251,31 @@ main {
   padding: 0.5rem;
   padding-top: 5.8rem;
   padding-bottom: 0;
-  /* Prevent excessive scrolling in Grid mode */
   min-height: auto;
-  overflow-x: hidden;
+  /* 🔥 只依赖 body 滚动，不单独滚动 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  width: 100%;
+  max-width: 100vw;
+  height: auto !important; /* 🔥 不固定高度，自适应内容 */
+  /* 🔥 确保不使用固定高度，避免产生内部滚动 */
+  max-height: none !important;
 }
 
 /* Gallery container - adapts based on mode */
 .gallery-container {
   width: 100%;
   margin: 0 auto;
-  padding: 0 var(--gallery-padding);
+  padding: 0; /* 🔥 移除左右padding,与Nadar Lau对齐 */
+  height: auto !important; /* 🔥 不固定高度 */
+  overflow: visible !important; /* 🔥 图片列表容器不单独滚动 */
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  max-width: 100vw;
+  /* 🔥 确保不使用固定高度，避免产生内部滚动 */
+  max-height: none !important;
+  min-height: auto;
 }
 
 /* Gallery item wrapper - Based on main branch */
@@ -223,12 +296,17 @@ main {
   visibility: hidden;
   position: relative; /* Create stacking context */
   z-index: 1; /* Above skeleton when loaded */
+  /* 🔥 新增:从上到下显示动画 */
+  clip-path: inset(0 0 100% 0); /* 初始状态:完全隐藏 */
 }
 .gallery img.loaded {
   opacity: 1;
   filter: blur(0);
   visibility: visible;
   z-index: 3; /* Above skeleton (z-index: 2) */
+  /* 🔥 新增:从上到下显示 */
+  clip-path: inset(0 0 0 0); /* 完全可见 */
+  transition: opacity var(--fade-in-duration) ease, filter var(--fade-in-duration) ease, clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .gallery figcaption {
   transition: opacity 0.3s ease;
@@ -248,6 +326,9 @@ main {
   pointer-events: none;
   /* Will be updated by JS with image-specific grayscale color */
   min-height: 100px; /* Ensure minimum height for proper coverage */
+  /* 🔥 新增:从上到下显示时,skeleton从下往上消失 */
+  clip-path: inset(0 0 0 0); /* 初始状态:完全可见 */
+  transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
 }
 
 /* Grid mode: skeleton should only cover image, not caption */
@@ -265,9 +346,11 @@ main {
 .item.loaded .skeleton {
   opacity: 0 !important;
   pointer-events: none;
-  transition: opacity 200ms ease;
+  transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
   z-index: -1; /* Hide behind image when loaded */
   visibility: hidden; /* Completely hide skeleton when loaded */
+  /* 🔥 新增:skeleton从下往上隐藏 */
+  clip-path: inset(0 0 100% 0) !important; /* 从下往上隐藏 */
 }
 
 /* Breathing animation - subtle pulse effect */
@@ -283,6 +366,17 @@ main {
   .skeleton {
     animation: none;
     opacity: 0.7;
+    clip-path: none !important; /* 🔥 禁用clip-path动画 */
+  }
+  .gallery img {
+    clip-path: none !important; /* 🔥 禁用clip-path动画 */
+  }
+  .gallery img.loaded {
+    clip-path: none !important;
+  }
+  .photo-card.loaded .skeleton,
+  .item.loaded .skeleton {
+    clip-path: none !important;
   }
 }
 
@@ -290,6 +384,21 @@ main {
 .gallery {
   /* Base transition for mode switching */
   transition: none;
+  /* 🔥 确保基础gallery容器不产生滚动条 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* 🔥 特别针对 #gallery ID 确保不产生滚动条 */
+#gallery {
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 /* Gallery grid mode (default) - Based on main branch */
@@ -301,7 +410,15 @@ main {
   align-items: end;
   /* Control scrolling - prevent excessive blank space */
   min-height: auto;
-  overflow: visible;
+  /* 🔥 确保grid本身不产生滚动条，完全依赖body滚动 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  width: 100%;
+  max-width: 100%;
+  /* 🔥 确保不使用固定高度，避免产生内部滚动 */
+  height: auto !important;
+  max-height: none !important;
   /* Limit bottom spacing: use negative margin to offset last row's gap, then add small padding */
   margin-bottom: -4rem; /* Offset most of the 6rem row gap */
   padding-bottom: 2rem; /* Final bottom spacing */
@@ -373,7 +490,13 @@ main {
 @media (max-width: 900px) {
   .gallery.grid,
   .gallery.mode-grid { 
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(3, 1fr);
+    /* 🔥 确保媒体查询中也不产生滚动条 */
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
   .gallery.grid .photo-caption,
   .gallery.mode-grid .photo-caption {
@@ -385,7 +508,13 @@ main {
 @media (max-width: 600px) {
   .gallery.grid,
   .gallery.mode-grid { 
-    grid-template-columns: repeat(2, 1fr); 
+    grid-template-columns: repeat(2, 1fr);
+    /* 🔥 确保移动端媒体查询中也不产生滚动条 */
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
   .gallery.grid .photo-caption,
   .gallery.mode-grid .photo-caption {
@@ -547,6 +676,12 @@ main {
 /* Feed mode container width adjustment */
 .gallery-container.feed-mode {
   max-width: var(--content-width-feed-max);
+  /* 🔥 确保feed-mode也不产生滚动条 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 /* Mobile adjustments for Feed mode */
@@ -567,11 +702,15 @@ main {
   }
 }
 
-/* Reduced motion - disable blur transitions */
+/* Reduced motion - disable blur transitions and clip-path animation */
 @media (prefers-reduced-motion: reduce) {
   .gallery img {
     filter: none !important;
     transition: opacity var(--fade-in-duration) ease;
+    clip-path: none !important; /* 🔥 禁用clip-path动画 */
+  }
+  .gallery img.loaded {
+    clip-path: none !important;
   }
 }
 
@@ -587,19 +726,77 @@ main {
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  /* Ensure thumbnail strip doesn't cause page overflow */
-  overflow: hidden;
+  /* 🔥 Lightbox 本身的滚动单独控制 */
+  overflow-y: auto; /* ✅ Lightbox 自己滚动 */
+  overflow-x: hidden; /* 🔥 防止水平滚动 */
+  max-height: 100vh; /* ✅ 防止内部内容撑出视口 */
+  /* 🔥 隐藏lightbox本身的滚动条（但保留滚动功能） */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge Legacy */
+}
+
+.lightbox::-webkit-scrollbar {
+  display: none; /* WebKit: 隐藏lightbox滚动条 */
+  width: 0;
+  height: 0;
+}
+
+/* 🔥 Lightbox 打开时禁止背景滚动 */
+body.lightbox-opening {
+  overflow: hidden; /* 🔥 隐藏主滚动条 */
+  height: 100vh; /* ✅ 锁定高度，防止内容撑开导致内部仍可滚动 */
+}
+
+/* 🔥 Lightbox 打开时背景渐隐 */
+body.lightbox-opening main,
+body.lightbox-opening .gallery-container {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  position: fixed; /* ✅ 脱离文档流，不撑高 body */
+  width: 100%; /* 保持宽度，避免布局跳动 */
+  /* 🔥 确保即使lightbox打开时也不产生滚动条 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* 🔥 Lightbox 关闭时背景渐显 */
+body:not(.lightbox-opening) main,
+body:not(.lightbox-opening) .gallery-container {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  /* 🔥 确保lightbox关闭时也不产生滚动条 */
+  overflow: visible !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
 }
 .lightbox.hidden { display: none; }
 .lightbox img {
-  max-width: 95vw;
-  /* Reserve space for thumbnail strip at bottom */
-  max-height: calc(95vh - var(--thumb-size) - var(--thumb-gap) * 2 - 20px);
+  max-width: calc(100vw - 200px); /* 🔥 左右各留空间给按钮和边距 */
+  /* Reserve space for thumbnail strip at bottom and caption */
+  max-height: calc(95vh - var(--thumb-size) - var(--thumb-gap) * 2 - 60px); /* 🔥 增加60px给编号留空间 */
   /* Border radius unified via CSS variable */
   border-radius: var(--radius);
   transition: opacity var(--lightbox-fade-duration) ease, transform var(--lightbox-fade-duration) ease;
-  /* Ensure main image doesn't overlap with thumbnails */
-  margin-bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2);
+  /* Ensure main image doesn't overlap with thumbnails and caption */
+  margin-bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2 + 40px); /* 🔥 增加40px给编号留空间 */
+  /* 🔥 优化动画性能 */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0); /* 启用硬件加速 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* 确保 lightbox 图片居中 - 使用 flex 布局，滑动动画时临时使用绝对定位 */
+#lightbox-img {
+  /* 默认使用 flex 布局居中 */
+  position: relative;
 }
 /* Close & nav buttons - text labels, no border */
 .lightbox .close,
@@ -617,24 +814,37 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.05s ease, background 0.05s ease; /* Match tab button transition */
+  transition: color 0.05s ease, background 0.05s ease, opacity 0.3s ease; /* Match tab button transition */
   min-width: 60px; /* Match tab button min-width */
   min-height: 44px;
   user-select: none;
+  /* 🔥 新增:按钮默认隐藏,打开时淡入 */
+  opacity: 0;
+}
+
+/* Lightbox 打开时按钮淡入 */
+.lightbox:not(.hidden) .close,
+.lightbox:not(.hidden) .nav {
+  opacity: 1;
 }
 
 .lightbox .close {
-  top: 20px;
-  right: 30px;
+  top: 8px; /* 🔥 距离顶部8px */
+  right: 8px; /* 🔥 距离右侧8px */
 }
 
 .lightbox .nav {
   top: 50%;
   transform: translateY(-50%);
+  z-index: 2001; /* 🔥 确保按钮在图片上方 */
 }
 
-.lightbox .prev { left: 40px; }
-.lightbox .next { right: 40px; }
+.lightbox .prev { 
+  left: 8px; /* 🔥 距离边缘8px,与Nadar Lau对齐 */
+}
+.lightbox .next { 
+  right: 8px; /* 🔥 距离边缘8px,与右侧对齐 */
+}
 
 .lightbox .close:hover,
 .lightbox .nav:hover {
@@ -670,14 +880,63 @@ main {
 /* Mobile lightbox adjustments */
 @media (max-width: 640px) {
   .lightbox .close {
-    top: 10px;
-    right: 10px;
+    top: 8px; /* 🔥 移动端也保持8px */
+    right: 8px; /* 🔥 移动端也保持8px */
   }
-  .lightbox .prev { left: 10px; }
-  .lightbox .next { right: 10px; }
+  .lightbox .prev { 
+    left: 10px;
+    /* 🔥 移动端按钮可以稍微覆盖,但保持可点击 */
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+  }
+  .lightbox .next { 
+    right: 10px;
+    /* 🔥 移动端按钮可以稍微覆盖,但保持可点击 */
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+  }
   .lightbox img {
-    max-height: calc(95vh - var(--thumb-size-mobile) - var(--thumb-gap) * 2 - 20px);
-    margin-bottom: calc(var(--thumb-size-mobile) + var(--thumb-gap) * 2);
+    max-width: 100vw; /* 🔥 移动端全宽显示 */
+    max-height: calc(95vh - var(--thumb-size-mobile) - var(--thumb-gap) * 2 - 60px); /* 🔥 增加60px给编号留空间 */
+    margin-bottom: calc(var(--thumb-size-mobile) + var(--thumb-gap) * 2 + 40px); /* 🔥 增加40px给编号留空间 */
+  }
+}
+
+/* ============================================
+   Lightbox 图片编号显示
+   ============================================ */
+.lb-caption {
+  position: fixed;
+  bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2 + 20px); /* 🔥 动态计算位置，在缩略图上方 */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2001;
+  pointer-events: none; /* 不阻挡鼠标事件 */
+}
+
+.lb-index {
+  display: inline-block;
+  color: rgba(0, 0, 0, 0.9);
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .lb-caption {
+    bottom: 100px;
+  }
+  
+  .lb-index {
+    font-size: 12px;
+    padding: 4px 10px;
   }
 }
 
@@ -714,6 +973,14 @@ main {
   /* Center the strip content */
   justify-content: center;
   max-width: 100%;
+  /* 🔥 新增:缩略图默认隐藏,打开时淡入 */
+  opacity: 0;
+  transition: opacity 0.4s ease 0.1s; /* 延迟 0.1s */
+}
+
+/* Lightbox 打开时缩略图淡入 */
+.lightbox:not(.hidden) .lb-thumbs {
+  opacity: 1;
 }
 .lb-thumbs::-webkit-scrollbar {
   height: 6px;
