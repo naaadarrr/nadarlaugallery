@@ -1,3 +1,140 @@
+// ============================================
+// Global Audio Management
+// ============================================
+let globalAudio = null;
+
+function initGlobalAudio() {
+  if (!globalAudio) {
+    globalAudio = new Audio('assets/Audio/All you are going to want to do is get back there.mp3');
+    globalAudio.loop = true;
+    globalAudio.volume = 0;
+    globalAudio.preload = 'auto';
+  }
+  return globalAudio;
+}
+
+function fadeInAudio(duration = 5000, targetVolume = 0.6) {
+  const audio = initGlobalAudio();
+  if (audio.paused) {
+    audio.play().catch(err => {
+      console.warn('Audio play failed:', err);
+    });
+  }
+  
+  const startVolume = audio.volume;
+  const volumeDiff = targetVolume - startVolume;
+  const steps = 50; // 50 steps for smooth fade
+  const volumeStep = volumeDiff / steps;
+  const stepDuration = duration / steps; // ~100ms per step for 5 seconds
+  let currentStep = 0;
+  
+  const fadeInterval = setInterval(() => {
+    currentStep++;
+    const newVolume = Math.min(startVolume + volumeStep * currentStep, targetVolume);
+    audio.volume = newVolume;
+    
+    if (currentStep >= steps || audio.volume >= targetVolume) {
+      audio.volume = targetVolume;
+      clearInterval(fadeInterval);
+    }
+  }, stepDuration);
+}
+
+// ============================================
+// Intro Page - Entry page with text animation
+// ============================================
+const introPage = document.getElementById('intro-page');
+const enterBtn = document.getElementById('enter-btn');
+const rippleOverlay = document.getElementById('ripple-overlay');
+const introParagraphs = document.querySelectorAll('.intro-paragraph');
+
+// Check if intro page should be shown (check localStorage)
+// For development: add ?showIntro=true to URL to force show intro page
+const urlParams = new URLSearchParams(window.location.search);
+const forceShowIntro = urlParams.get('showIntro') === 'true';
+const introShown = !forceShowIntro && localStorage.getItem('introShown') === 'true';
+
+if (!introShown) {
+  // Show intro page
+  document.body.classList.add('intro-visible');
+  
+  // 淡入动画：逐段显示文字，最后显示按钮
+  function animateFadeIn() {
+    const paragraphs = document.querySelectorAll('.fade-in');
+    const button = document.querySelector('.fade-in-button');
+    
+    // 逐段显示文字（每段间隔 0.8s）
+    paragraphs.forEach((p, i) => {
+      setTimeout(() => {
+        p.classList.add('show');
+      }, i * 800);
+    });
+    
+    // 最后显示按钮（在所有段落显示完成后）
+    setTimeout(() => {
+      if (button) {
+        button.classList.add('show');
+      }
+    }, paragraphs.length * 800);
+  }
+  
+  // 页面加载完成后开始动画
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', animateFadeIn);
+  } else {
+    // DOM 已加载，直接开始动画
+    setTimeout(animateFadeIn, 100);
+  }
+  
+  // Handle Enter button click
+  enterBtn.addEventListener('click', (e) => {
+    // Get button position for circle origin
+    const buttonRect = enterBtn.getBoundingClientRect();
+    const centerX = buttonRect.left + buttonRect.width / 2;
+    const centerY = buttonRect.top + buttonRect.height / 2;
+    
+    // Calculate maximum radius to cover entire screen
+    const maxRadius = Math.sqrt(
+      Math.pow(Math.max(centerX, window.innerWidth - centerX), 2) +
+      Math.pow(Math.max(centerY, window.innerHeight - centerY), 2)
+    );
+    
+    // Set circle origin point and radius
+    rippleOverlay.style.setProperty('--circle-x', `${centerX}px`);
+    rippleOverlay.style.setProperty('--circle-y', `${centerY}px`);
+    rippleOverlay.style.setProperty('--circle-r', `${maxRadius}px`);
+    
+    // Play audio with fade in (5 seconds, target volume 0.6)
+    fadeInAudio(5000, 0.6);
+    
+    // Trigger circle reveal animation
+    rippleOverlay.classList.add('active', 'circle-animate');
+    
+    // Hide intro page after animation completes (900ms)
+    setTimeout(() => {
+      introPage.classList.add('hidden');
+      document.body.classList.remove('intro-visible');
+      localStorage.setItem('introShown', 'true');
+      
+      // Clean up animation classes
+      rippleOverlay.classList.remove('active', 'circle-animate');
+      
+      // Gallery page will fade in via CSS transition
+    }, 900); // Match animation duration
+  });
+  
+  // Also handle Enter key press
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !introPage.classList.contains('hidden') && enterBtn.classList.contains('show')) {
+      enterBtn.click();
+    }
+  });
+} else {
+  // Intro already shown, hide it immediately
+  introPage.classList.add('hidden');
+  document.body.classList.remove('intro-visible');
+}
+
 // View toggle functionality - Based on main branch FLIP animation
 const gallery = document.getElementById('gallery');
 const galleryContainer = gallery.closest('.gallery-container');
@@ -30,14 +167,12 @@ function updateGridCaptions() {
 
 function setView(view, isInitial = false) {
   if (isInitial) {
-    // No animation on initial load
     if (view === 'grid') {
       gallery.classList.remove('list', 'feed', 'mode-list', 'mode-feed');
       gallery.classList.add('grid', 'mode-grid');
       btnGrid.classList.add('active');
       btnList.classList.remove('active');
       btnFeed.classList.remove('active');
-      // Update Grid captions
       updateGridCaptions();
     } else if (view === 'list') {
       gallery.classList.remove('grid', 'feed', 'mode-grid', 'mode-feed');
@@ -52,8 +187,7 @@ function setView(view, isInitial = false) {
       btnGrid.classList.remove('active');
       btnList.classList.remove('active');
     }
-    
-    // Update container class for feed mode
+
     if (galleryContainer) {
       if (view === 'feed') {
         galleryContainer.classList.add('feed-mode');
@@ -61,36 +195,48 @@ function setView(view, isInitial = false) {
         galleryContainer.classList.remove('feed-mode');
       }
     }
-    
+
     localStorage.setItem('galleryView', view);
     return;
   }
-  
-  // FLIP Animation (First-Last-Invert-Play) - Exact implementation from main branch
+
   const items = Array.from(gallery.querySelectorAll('.item'));
   const currentScrollY = window.scrollY;
-  
-  // Prevent user from clicking again during animation
+
   btnGrid.disabled = true;
   btnList.disabled = true;
   btnFeed.disabled = true;
-  
-  // Step 1: First - Record initial positions (of images for more accurate tracking)
+
+  // 检测是否是 Feed → Grid 切换，预先优化性能
+  const isFeedToGrid = (gallery.classList.contains('feed') || gallery.classList.contains('mode-feed')) && view === 'grid';
+  if (isFeedToGrid) {
+    // 预先设置 will-change 优化性能，减少卡顿
+    items.forEach(item => {
+      item.style.willChange = 'transform';
+    });
+    // 强制同步布局计算，避免后续卡顿
+    gallery.offsetHeight;
+  }
+
   const firstRects = items.map(item => {
     const img = item.querySelector('img');
     return img ? img.getBoundingClientRect() : item.getBoundingClientRect();
   });
-  
-  // Step 2: Last - Switch layout and get new positions
-  // Unconditionally remove all mode classes, then add target class
+
+  const currentMode =
+    gallery.classList.contains('grid') || gallery.classList.contains('mode-grid')
+      ? 'grid'
+      : gallery.classList.contains('feed') || gallery.classList.contains('mode-feed')
+      ? 'feed'
+      : 'list';
+
   gallery.classList.remove('grid', 'list', 'feed', 'mode-grid', 'mode-list', 'mode-feed');
-  
+
   if (view === 'grid') {
     gallery.classList.add('grid', 'mode-grid');
     btnGrid.classList.add('active');
     btnList.classList.remove('active');
     btnFeed.classList.remove('active');
-    // Update Grid captions after class change
     updateGridCaptions();
   } else if (view === 'list') {
     gallery.classList.add('list', 'mode-list');
@@ -103,8 +249,7 @@ function setView(view, isInitial = false) {
     btnGrid.classList.remove('active');
     btnList.classList.remove('active');
   }
-  
-  // Update container class for feed mode
+
   if (galleryContainer) {
     if (view === 'feed') {
       galleryContainer.classList.add('feed-mode');
@@ -112,85 +257,241 @@ function setView(view, isInitial = false) {
       galleryContainer.classList.remove('feed-mode');
     }
   }
-  
-  // Force layout calculation
+
+  // 强制布局计算，确保新布局已完全应用
   gallery.offsetHeight;
   
+  // 对于 List → Feed 切换，需要额外等待一帧确保布局完全计算
+  const isListToFeed = currentMode === 'list' && view === 'feed';
+  
+  if (isListToFeed) {
+    // 强制同步布局计算
+    gallery.offsetHeight;
+    // 等待下一帧，确保 Feed 模式布局完全应用
+    requestAnimationFrame(() => {
+      // 再次强制布局计算
+      gallery.offsetHeight;
+      
+      const lastRects = items.map(item => {
+        const img = item.querySelector('img');
+        return img ? img.getBoundingClientRect() : item.getBoundingClientRect();
+      });
+      
+      // 继续执行 FLIP 动画逻辑
+      continueFlipAnimation(firstRects, lastRects, currentMode, view, items, currentScrollY);
+    });
+    return; // 提前返回，后续逻辑在 continueFlipAnimation 中执行
+  }
+
   const lastRects = items.map(item => {
     const img = item.querySelector('img');
     return img ? img.getBoundingClientRect() : item.getBoundingClientRect();
   });
+
+  // 继续执行 FLIP 动画逻辑
+  continueFlipAnimation(firstRects, lastRects, currentMode, view, items, currentScrollY);
+}
+
+// 提取 FLIP 动画逻辑到独立函数，便于 List → Feed 异步调用
+function continueFlipAnimation(firstRects, lastRects, currentMode, view, items, currentScrollY) {
+  let animationOrder = [];
+
+  // === 动画顺序优化逻辑 ===
+  if (currentMode === 'grid' && view === 'feed') {
+    // Grid → Feed: 保持Grid模式下的原始顺序，每张图移动到Feed模式下对应的位置
+    // 不需要排序，直接使用原始顺序，确保第一张图移动到第一个位置，第二张图移动到第二个位置...
+    animationOrder = items.map((item, index) => ({
+      originalIndex: index,
+      orderIndex: index // 保持原始顺序
+    }));
+  } else if (currentMode === 'list' && view === 'feed') {
+    // List → Feed: 保持List模式下的原始顺序，每张图从左边移动到Feed模式下对应的位置
+    // 不需要排序，直接使用原始顺序，确保第一张图移动到第一个位置，第二张图移动到第二个位置...
+    animationOrder = items.map((item, index) => ({
+      originalIndex: index,
+      orderIndex: index // 保持原始顺序
+    }));
+  } else if (currentMode === 'feed' && view === 'grid') {
+    const itemsWithPositions = items.map((item, index) => ({
+      item,
+      index,
+      rect: firstRects[index]
+    }));
+
+    itemsWithPositions.sort((a, b) => {
+      const rowDiff = b.rect.bottom - a.rect.bottom;
+      if (Math.abs(rowDiff) > 10) return rowDiff;
+      return b.rect.right - a.rect.right;
+    });
+
+    animationOrder = itemsWithPositions.map((item, orderIndex) => ({
+      originalIndex: item.index,
+      orderIndex
+    }));
+  } else {
+    animationOrder = items.map((item, index) => ({
+      originalIndex: index,
+      orderIndex: index
+    }));
+  }
+
+  // Step 4: Invert
+  const isListToFeed = currentMode === 'list' && view === 'feed';
+  const isGridToFeed = currentMode === 'grid' && view === 'feed';
   
-  // Step 3: Invert - Calculate deltas and apply transforms
   items.forEach((item, index) => {
     const first = firstRects[index];
     const last = lastRects[index];
     if (!first || !last) return;
-    
+
     const deltaX = first.left - last.left;
     const deltaY = first.top - last.top;
     const deltaW = first.width / last.width;
     const deltaH = first.height / last.height;
-    
-    // Apply inverted transform (no transition yet)
+
     item.style.transition = 'none';
-    item.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
-    item.style.transformOrigin = 'top left';
+    
+    if (isListToFeed) {
+      // List → Feed: 使用图片中心点作为缩放原点，让图片从左侧移动到中间
+      const img = item.querySelector('img');
+      if (img) {
+        // 获取图片在 List 模式下的位置（firstRects 已经是图片位置）
+        const imgFirstRect = firstRects[index];
+        const imgCenterX = imgFirstRect.left + imgFirstRect.width / 2;
+        const imgCenterY = imgFirstRect.top + imgFirstRect.height / 2;
+        
+        // 获取图片在 Feed 模式下的目标位置
+        const imgLastRect = lastRects[index];
+        const targetCenterX = imgLastRect.left + imgLastRect.width / 2;
+        const targetCenterY = imgLastRect.top + imgLastRect.height / 2;
+        
+        // 计算中心点偏移
+        const centerDeltaX = imgCenterX - targetCenterX;
+        const centerDeltaY = imgCenterY - targetCenterY;
+        
+        item.style.transformOrigin = 'center center';
+        item.style.transform = `translate(${centerDeltaX}px, ${centerDeltaY}px) scale(${deltaW}, ${deltaH})`;
+      } else {
+        item.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
+        item.style.transformOrigin = 'center center';
+      }
+    } else if (isGridToFeed) {
+      // Grid → Feed: 使用中心点作为缩放原点，让动画更自然
+      item.style.transformOrigin = 'center center';
+      item.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
+    } else {
+      item.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
+      item.style.transformOrigin = 'top left';
+    }
     
     // Handle figcaption fade
     const figcaption = item.querySelector('figcaption');
     if (figcaption) {
       figcaption.style.transition = 'none';
-      if (view === 'list') {
+      if (isListToFeed) {
+        // List → Feed: 立即隐藏编号
         figcaption.style.opacity = '0';
+      } else if (currentMode === 'list' && view !== 'list') {
+        // 从List切换到其他模式：隐藏编号
+        figcaption.style.opacity = '0';
+      } else if (view === 'list' && currentMode !== 'list') {
+        // 切换到List模式：显示编号（在动画中处理）
+        figcaption.style.opacity = '0'; // 初始隐藏，动画中显示
       }
     }
   });
-  
-  // Force reflow
+
   gallery.offsetHeight;
-  
-  // Restore scroll position to prevent jump
+
   window.scrollTo(0, currentScrollY);
-  
-  // Step 4: Play - Animate to final position
+
+  // Step 5: Play
   requestAnimationFrame(() => {
+    const isGridToFeed = currentMode === 'grid' && view === 'feed';
+    const isListToFeed = currentMode === 'list' && view === 'feed';
+
     items.forEach((item, index) => {
-      const delay = index * 30; // Stagger delay: 30ms per item
-      item.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
-      item.style.transform = 'none';
-      
-      // Fade in/out figcaption
-      const figcaption = item.querySelector('figcaption');
-      if (figcaption) {
-        figcaption.style.transition = `opacity 0.3s ease ${delay + 100}ms`;
+      const orderInfo = animationOrder.find(o => o.originalIndex === index);
+      const animationIndex = orderInfo ? orderInfo.orderIndex : index;
+
+      let delay = animationIndex * 30;
+
+      if (isGridToFeed) {
+        // Grid → Feed: 优化为更丝滑的动画
+        delay = animationIndex * 30; // 减少延迟间隔，让动画更连贯
+        item.style.transition = `transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}ms, opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
+        item.style.transformOrigin = 'center center';
+        // 保持 FLIP 计算好的初始 transform，直接动画到最终状态
+        // 不要覆盖 transform，让它从原来的位置开始动画
+        item.style.opacity = '0';
+        requestAnimationFrame(() => {
+          // 动画到最终位置（FLIP 已经计算好了）
+          item.style.transform = 'none';
+          item.style.opacity = '1';
+        });
+      } else if (isListToFeed) {
+        // List → Feed: 从左侧移动到中间，同时放大，无淡入效果
+        delay = animationIndex * 20; // 更快的连续动画
+        item.style.transition = `transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
+        item.style.transformOrigin = 'center center';
+        // 直接移动到最终位置（FLIP 已经计算好了）
+        item.style.transform = 'none';
+        
+        // 确保 figcaption 保持隐藏
+        const figcaption = item.querySelector('figcaption');
+        if (figcaption) {
+          figcaption.style.transition = `opacity 0.3s ease ${delay}ms`;
+          figcaption.style.opacity = '0';
+        }
+      } else {
+        // 其他切换（包括切换到List）
+        item.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
+        item.style.transform = 'none';
+        
+        // 切换到List模式时，显示figcaption
         if (view === 'list') {
-          figcaption.style.opacity = '1';
+          const figcaption = item.querySelector('figcaption');
+          if (figcaption) {
+            figcaption.style.transition = `opacity 0.3s ease ${delay + 100}ms`;
+            figcaption.style.opacity = '1';
+          }
         }
       }
     });
+
+    // 根据不同的切换类型计算最大延迟
+    let maxDelay;
+    if (isGridToFeed) {
+      maxDelay = (items.length - 1) * 30; // Grid → Feed 使用 30ms 间隔
+    } else if (isListToFeed) {
+      maxDelay = (items.length - 1) * 20; // List → Feed 使用 20ms 间隔
+    } else {
+      maxDelay = (items.length - 1) * 30; // 其他切换使用 30ms 间隔
+    }
     
-    // Cleanup after animation completes
-    const maxDelay = (items.length - 1) * 30;
+    // 根据动画时长计算清理时间
+    const animationDuration = isGridToFeed ? 650 : isListToFeed ? 600 : 500;
+
     setTimeout(() => {
       items.forEach(item => {
         item.style.transition = '';
         item.style.transform = '';
         item.style.transformOrigin = '';
+        item.style.opacity = '';
+        item.style.willChange = ''; // 清理 will-change
         const figcaption = item.querySelector('figcaption');
         if (figcaption) {
           figcaption.style.transition = '';
           figcaption.style.opacity = '';
         }
       });
-      
-      // Re-enable buttons
+
       btnGrid.disabled = false;
       btnList.disabled = false;
       btnFeed.disabled = false;
-    }, 500 + maxDelay + 100);
+    }, animationDuration + maxDelay + 100);
   });
-  
+
   localStorage.setItem('galleryView', view);
 }
 
