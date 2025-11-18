@@ -208,6 +208,7 @@ body:not(.intro-visible) main {
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
+  padding-right: 8px; /* 🔥 切换tab整体距离右侧的padding为8px */
 }
 
 .site-header h1 {
@@ -525,8 +526,8 @@ main {
 
 .gallery.grid .item.loaded .photo-caption,
 .gallery.mode-grid .item.loaded .photo-caption {
-  display: block;
-  opacity: 1;
+  display: none !important; /* 🔥 grid模式只显示编号，隐藏photo-caption */
+  opacity: 0;
 }
 
 /* List mode */
