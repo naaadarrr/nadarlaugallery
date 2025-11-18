@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,11 +35,10 @@
           <path d="M6.5 1.5C7 3 8 4 9.5 4.5C11 5 12 6 12.5 7.5C12 9 11 10 9.5 10.5C8 11 7 12 6.5 13.5C6 12 5 11 3.5 10.5C2 10 1 9 0.5 7.5C1 6 2 5 3.5 4.5C5 4 6 3 6.5 1.5Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.3"/>
         </svg>
       </button>
-      <!-- Segmented control for three modes: Grid, List, Feed -->
+      <!-- Segmented control for two modes: Grid, List -->
       <div class="view-toggle" role="tablist" aria-label="Gallery view mode">
         <button id="btn-grid" class="toggle-btn active" data-text="Grid" aria-pressed="true" aria-label="Grid view">Grid</button>
         <button id="btn-list" class="toggle-btn" data-text="List" aria-pressed="false" aria-label="List view">List</button>
-        <button id="btn-feed" class="toggle-btn" data-text="Feed" aria-pressed="false" aria-label="Feed view">Feed</button>
       </div>
     </div>
   </header>
@@ -47,7 +46,7 @@
   <!-- Image gallery with mode-based layout -->
   <main>
     <div class="gallery-container">
-      <!-- Gallery wrapper with mode class: .mode-grid, .mode-list, or .mode-feed -->
+      <!-- Gallery wrapper with mode class: .mode-grid or .mode-list -->
       <div class="gallery grid mode-grid" id="gallery" aria-busy="true">
         <figure class="item photo-card">
           <div class="skeleton"></div>
@@ -57,7 +56,6 @@
             <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
-          <!-- Grid mode caption: P:001 format (dynamically populated) -->
           <div class="photo-caption"></div>
         </figure>
         <figure class="item photo-card">
@@ -65,7 +63,7 @@
           <img src="assets/images/P:002.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:002</span>
-            <span class="item-size">1440 × 1920</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -75,7 +73,7 @@
           <img src="assets/images/P:003.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:003</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -85,7 +83,7 @@
           <img src="assets/images/P:004.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:004</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -95,7 +93,7 @@
           <img src="assets/images/P:005.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:005</span>
-            <span class="item-size">4032 × 3024</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -105,7 +103,7 @@
           <img src="assets/images/P:006.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:006</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -115,7 +113,7 @@
           <img src="assets/images/P:007.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:007</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -125,7 +123,7 @@
           <img src="assets/images/P:008.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:008</span>
-            <span class="item-size">4032 × 3024</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -135,7 +133,7 @@
           <img src="assets/images/P:009.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:009</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -145,7 +143,7 @@
           <img src="assets/images/P:010.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:010</span>
-            <span class="item-size">4032 × 3024</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -155,7 +153,7 @@
           <img src="assets/images/P:011.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:011</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -165,7 +163,7 @@
           <img src="assets/images/P:012.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:012</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -175,7 +173,7 @@
           <img src="assets/images/P:013.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:013</span>
-            <span class="item-size">3024 × 4032</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -185,7 +183,7 @@
           <img src="assets/images/P:014.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:014</span>
-            <span class="item-size">1440 × 1920</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -195,7 +193,47 @@
           <img src="assets/images/P:015.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:015</span>
-            <span class="item-size">1920 × 1440</span>
+            <span class="item-size">1080 × 1440</span>
+            <span class="item-year">2025</span>
+          </figcaption>
+          <div class="photo-caption"></div>
+        </figure>
+        <figure class="item photo-card">
+          <div class="skeleton"></div>
+          <img src="assets/images/P:016.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <figcaption>
+            <span class="item-number">P:016</span>
+            <span class="item-size">1080 × 1440</span>
+            <span class="item-year">2025</span>
+          </figcaption>
+          <div class="photo-caption"></div>
+        </figure>
+        <figure class="item photo-card">
+          <div class="skeleton"></div>
+          <img src="assets/images/P:017.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <figcaption>
+            <span class="item-number">P:017</span>
+            <span class="item-size">1080 × 1440</span>
+            <span class="item-year">2025</span>
+          </figcaption>
+          <div class="photo-caption"></div>
+        </figure>
+        <figure class="item photo-card">
+          <div class="skeleton"></div>
+          <img src="assets/images/P:018.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <figcaption>
+            <span class="item-number">P:018</span>
+            <span class="item-size">1080 × 1440</span>
+            <span class="item-year">2025</span>
+          </figcaption>
+          <div class="photo-caption"></div>
+        </figure>
+        <figure class="item photo-card">
+          <div class="skeleton"></div>
+          <img src="assets/images/P:019.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <figcaption>
+            <span class="item-number">P:019</span>
+            <span class="item-size">1080 × 1440</span>
             <span class="item-year">2025</span>
           </figcaption>
           <div class="photo-caption"></div>
@@ -204,20 +242,19 @@
     </div>
   </main>
 
-  <!-- Lightbox overlay with centered thumbnail strip -->
-  <div id="lightbox" class="lightbox hidden" data-lightbox-root>
-    <button class="close" id="close-btn" aria-label="Close lightbox">Close</button>
-    <button class="nav prev" id="prev-btn" aria-label="Previous image">Left</button>
-    <img id="lightbox-img" src="" alt="Enlarged photo" />
-    <button class="nav next" id="next-btn" aria-label="Next image">Right</button>
-    <!-- Centered thumbnail strip at bottom -->
+  <!-- Lightbox overlay -->
+  <div id="lightbox" class="lightbox hidden">
+    <button id="close-btn" class="close" aria-label="Close lightbox">Close</button>
+    <button id="prev-btn" class="prev" aria-label="Previous image">Prev</button>
+    <button id="next-btn" class="next" aria-label="Next image">Next</button>
+    <img id="lightbox-img" src="" alt="Gallery photo" />
     <div class="lb-thumbs-wrapper">
-      <div class="lb-thumbs" role="tablist" aria-label="Image thumbnails">
-        <!-- Thumbnails will be dynamically generated by JavaScript -->
-      </div>
+      <div class="lb-thumbs"></div>
     </div>
   </div>
 
   <script src="script.js"></script>
+  <!-- 临时检测脚本 -->
+  <script src="detect-scroll-containers.js"></script>
 </body>
 </html>

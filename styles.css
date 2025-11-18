@@ -346,6 +346,8 @@ main {
   flex: none !important;
   width: 100%;
   background-color: var(--bg-color);
+  display: flex;
+  justify-content: center; /* 🔥 确保gallery居中显示 */
 }
 
 /* ============================================
@@ -674,31 +676,39 @@ main {
   background: transparent;
   border: none;
   color: var(--text-color);
-  font-size: 2rem;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
   z-index: 2001;
-  padding: 1rem;
-  min-width: 44px;
+  padding: 0.75rem 1.5rem;
+  min-width: 60px;
   min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  border-radius: 4px;
+}
+
+.lightbox .close:hover,
+.lightbox .prev:hover,
+.lightbox .next:hover {
+  background: var(--hover-bg);
 }
 
 .lightbox .close {
-  top: 8px;
-  right: 8px;
+  top: 16px;
+  right: 16px;
 }
 
 .lightbox .prev {
-  left: 8px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .lightbox .next {
-  right: 8px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
 }
