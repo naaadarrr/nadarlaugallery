@@ -288,9 +288,10 @@ body:not(.intro-visible) main {
   padding: 8px 20px;
   cursor: pointer;
   transition: color 0.05s ease, background 0.05s ease;
-  min-width: 60px;
+  width: 60px; /* 🔥 固定宽度，确保list和grid按钮一致 */
   position: relative;
   user-select: none;
+  text-align: center;
 }
 
 .toggle-btn:hover {
@@ -496,12 +497,14 @@ main {
 
 .gallery.grid .item-size,
 .gallery.mode-grid .item-size {
+  display: none !important; /* 🔥 grid模式只显示编号，隐藏尺寸 */
   font-size: 0.75rem;
   color: var(--text-color-secondary);
 }
 
 .gallery.grid .item-year,
 .gallery.mode-grid .item-year {
+  display: none !important; /* 🔥 grid模式只显示编号，隐藏年份 */
   font-size: 0.75rem;
   color: var(--text-color-secondary);
 }
