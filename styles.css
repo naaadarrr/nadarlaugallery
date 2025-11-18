@@ -50,14 +50,40 @@
   --skeleton-1: #e8e8e8;
   --skeleton-2: #f0f0f0;
   --skeleton-shimmer: rgba(255, 255, 255, 0.6);
+  
+  /* Theme colors - light mode (default) */
+  --bg-color: #fff;
+  --text-color: #111;
+  --text-color-secondary: rgb(153, 153, 153);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --hover-bg: rgba(0, 0, 0, 0.03);
+  --hover-bg-light: rgba(0, 0, 0, 0.05);
+  --lightbox-bg: #fff;
+  --intro-bg: #fff;
+}
+
+/* Dark mode theme */
+[data-theme="dark"] {
+  --bg-color: #111;
+  --text-color: #fff;
+  --text-color-secondary: rgba(255, 255, 255, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --hover-bg-light: rgba(255, 255, 255, 0.08);
+  --lightbox-bg: #111;
+  --intro-bg: #111;
+  --skeleton-1: #2a2a2a;
+  --skeleton-2: #333;
+  --image-placeholder-bg: #1a1a1a;
+  --focus-ring-color: #fff;
 }
 
 /* Global font application - Courier New for all UI */
 html,
 body {
   font-family: var(--font-app);
-  background: #fff;
-  color: #111;
+  background: var(--bg-color);
+  color: var(--text-color);
   /* Optimize font rendering for monospace */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -149,7 +175,7 @@ figcaption, caption,
 .intro-page {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: var(--intro-bg);
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -176,7 +202,7 @@ figcaption, caption,
   font-family: var(--font-app);
   font-size: 1rem;
   line-height: 1.8;
-  color: #111;
+  color: var(--text-color);
   margin-bottom: 1.5rem;
 }
 
@@ -212,9 +238,9 @@ figcaption, caption,
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
-  color: rgb(153, 153, 153);
+  color: var(--text-color-secondary);
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--hover-bg-light);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: none;
@@ -236,8 +262,8 @@ figcaption, caption,
 }
 
 .enter-btn:hover {
-  color: #000;
-  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+  background: var(--hover-bg);
 }
 
 /* Hover underline animation - left to right */
@@ -248,7 +274,7 @@ figcaption, caption,
   left: 0;
   width: 0;
   height: 1px;
-  background-color: #000;
+  background-color: var(--text-color);
   transition: width 0.2s ease-out;
 }
 
@@ -259,14 +285,14 @@ figcaption, caption,
 .enter-btn:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
-  color: #000;
+  color: var(--text-color);
 }
 
 /* Circle reveal transition overlay */
 .ripple-overlay {
   position: absolute;
   inset: 0;
-  background: #fff;
+  background: var(--intro-bg);
   clip-path: circle(0px at var(--circle-x, 50%) var(--circle-y, 50%));
   pointer-events: none;
   z-index: 3001;
@@ -339,13 +365,77 @@ body:not(.intro-visible) main {
   transition: opacity 0.5s ease;
 }
 
-.site-header .view-toggle {
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-left: auto;
+}
+
+.site-header .view-toggle {
+  margin-left: 0;
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color-secondary);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  transition: color 0.05s ease, background 0.05s ease;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--text-color);
+  background: var(--hover-bg);
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.theme-icon {
+  position: absolute;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  width: 16px;
+  height: 16px;
+}
+
+.sun-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.moon-icon {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+[data-theme="dark"] .sun-icon {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+[data-theme="dark"] .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg);
 }
 .site-header h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111;
+  color: var(--text-color);
   margin: 0;
   display: inline-block;
   padding: 8px 12px;
@@ -357,14 +447,14 @@ body:not(.intro-visible) main {
 .view-toggle {
   display: flex;
   gap: 0;
-  background: #fff;
+  background: var(--bg-color);
   /* Removed border: 1px solid rgba(0, 0, 0, 0.2); - no rectangular border */
   height: calc(1.5rem + 16px + 2px); /* Match h1 height */
 }
 .toggle-btn {
   font-size: 16px;
   font-weight: 600;
-  color: rgb(153, 153, 153); /* Unselected gray */
+  color: var(--text-color-secondary); /* Unselected gray */
   background: transparent; /* 默认无背景 */
   border: none;
   padding: 8px 20px;
@@ -385,11 +475,11 @@ body:not(.intro-visible) main {
   display: block;
 }
 .toggle-btn:hover {
-  color: #111;
-  background: rgba(0, 0, 0, 0.03); /* hover 时才显示背景 */
+  color: var(--text-color);
+  background: var(--hover-bg); /* hover 时才显示背景 */
 }
 .toggle-btn.active {
-  color: #111;
+  color: var(--text-color);
   font-weight: 600;
   background: transparent; /* active 状态也无背景，只有下划线 */
 }
@@ -403,7 +493,7 @@ body:not(.intro-visible) main {
   left: 0;
   width: 0;
   height: 1px;
-  background-color: #000;
+  background-color: var(--text-color);
   transition: width 0.2s ease-out;
 }
 
@@ -419,7 +509,7 @@ body:not(.intro-visible) main {
   left: 0;
   width: 100%;
   height: 1px;
-  background-color: #000;
+  background-color: var(--text-color);
 }
 .toggle-btn:disabled {
   cursor: not-allowed;
@@ -660,7 +750,7 @@ main {
 }
 .gallery.grid .photo-caption .caption-index {
   font-weight: 400;
-  color: rgb(153, 153, 153);
+  color: var(--text-color-secondary);
 }
 
 /* Hide captions in List and Feed modes */
@@ -721,7 +811,7 @@ main {
   align-items: center;
   gap: 2rem;
   padding: 1.2rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
   aspect-ratio: auto;
 }
@@ -768,7 +858,7 @@ main {
 .gallery.mode-list .item-number {
   font-size: 0.875rem;
   font-weight: 400;
-  color: rgb(153, 153, 153);
+  color: var(--text-color-secondary);
   flex-shrink: 0;
   margin-right: 1rem;
 }
@@ -776,14 +866,14 @@ main {
 .gallery.mode-list .item-size {
   font-size: 0.875rem;
   font-weight: normal;
-  color: #999;
+  color: var(--text-color-secondary);
   flex: 1;
 }
 
 .gallery.mode-list .item-year {
   font-size: 0.875rem;
   font-weight: normal;
-  color: #999;
+  color: var(--text-color-secondary);
   text-align: right;
   flex-shrink: 0;
 }
@@ -905,7 +995,7 @@ main {
 .lightbox {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: var(--lightbox-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -990,7 +1080,7 @@ body:not(.lightbox-opening) .gallery-container {
   font-family: inherit;
   font-size: 16px;
   font-weight: 600;
-  color: rgb(153, 153, 153); /* Default gray */
+  color: var(--text-color-secondary); /* Default gray */
   cursor: pointer;
   background: transparent; /* 默认无背景 */
   border: none;
@@ -1033,8 +1123,8 @@ body:not(.lightbox-opening) .gallery-container {
 
 .lightbox .close:hover,
 .lightbox .nav:hover {
-  color: #000; /* Black on hover */
-  background: rgba(0, 0, 0, 0.03); /* hover 时才显示背景 */
+  color: var(--text-color); /* Black on hover */
+  background: var(--hover-bg); /* hover 时才显示背景 */
 }
 
 /* Hover underline animation - left to right */
@@ -1046,7 +1136,7 @@ body:not(.lightbox-opening) .gallery-container {
   left: 0;
   width: 0;
   height: 1px;
-  background-color: #000;
+  background-color: var(--text-color);
   transition: width 0.2s ease-out;
 }
 
@@ -1059,7 +1149,7 @@ body:not(.lightbox-opening) .gallery-container {
 .lightbox .nav:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
-  color: #000;
+  color: var(--text-color);
 }
 
 /* Mobile lightbox adjustments */
@@ -1101,12 +1191,13 @@ body:not(.lightbox-opening) .gallery-container {
 
 .lb-index {
   display: inline-block;
-  color: rgba(0, 0, 0, 0.9);
+  color: var(--text-color);
   font-size: 14px;
   font-family: var(--font-mono);
   font-weight: 400;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-color);
+  opacity: 0.9;
   padding: 6px 12px;
   border-radius: var(--radius);
   backdrop-filter: blur(8px);
@@ -1137,10 +1228,11 @@ body:not(.lightbox-opening) .gallery-container {
   justify-content: center;
   align-items: center;
   padding: var(--thumb-gap);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-color);
+  opacity: 0.95;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -1177,8 +1269,17 @@ body:not(.lightbox-opening) .gallery-container {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
+
+[data-theme="dark"] .lb-thumbs::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .lb-thumbs::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .lb-thumbs::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Thumbnail button - smaller, no border */

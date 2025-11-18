@@ -24,11 +24,23 @@
   <!-- Scrolling header -->
   <header class="site-header">
     <h1 id="gallery-title">Nadar Lau</h1>
-    <!-- Segmented control for three modes: Grid, List, Feed -->
-    <div class="view-toggle" role="tablist" aria-label="Gallery view mode">
-      <button id="btn-grid" class="toggle-btn active" data-text="Grid" aria-pressed="true" aria-label="Grid view">Grid</button>
-      <button id="btn-list" class="toggle-btn" data-text="List" aria-pressed="false" aria-label="List view">List</button>
-      <button id="btn-feed" class="toggle-btn" data-text="Feed" aria-pressed="false" aria-label="Feed view">Feed</button>
+    <div class="header-controls">
+      <!-- Theme toggle button -->
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 1v2M8 13v2M15 8h-2M3 8H1M13.364 2.636l-1.414 1.414M4.05 11.95l-1.414 1.414M13.364 13.364l-1.414-1.414M4.05 4.05L2.636 2.636" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.5 1.5C7 3 8 4 9.5 4.5C11 5 12 6 12.5 7.5C12 9 11 10 9.5 10.5C8 11 7 12 6.5 13.5C6 12 5 11 3.5 10.5C2 10 1 9 0.5 7.5C1 6 2 5 3.5 4.5C5 4 6 3 6.5 1.5Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.3"/>
+        </svg>
+      </button>
+      <!-- Segmented control for three modes: Grid, List, Feed -->
+      <div class="view-toggle" role="tablist" aria-label="Gallery view mode">
+        <button id="btn-grid" class="toggle-btn active" data-text="Grid" aria-pressed="true" aria-label="Grid view">Grid</button>
+        <button id="btn-list" class="toggle-btn" data-text="List" aria-pressed="false" aria-label="List view">List</button>
+        <button id="btn-feed" class="toggle-btn" data-text="Feed" aria-pressed="false" aria-label="Feed view">Feed</button>
+      </div>
     </div>
   </header>
 
@@ -39,7 +51,7 @@
       <div class="gallery grid mode-grid" id="gallery" aria-busy="true">
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_0718.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:001.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:001</span>
             <span class="item-size">1080 × 1440</span>
@@ -50,7 +62,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_1643.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:002.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:002</span>
             <span class="item-size">1440 × 1920</span>
@@ -60,7 +72,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251003_213619.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:003.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:003</span>
             <span class="item-size">3024 × 4032</span>
@@ -70,7 +82,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251003_215131.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:004.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:004</span>
             <span class="item-size">3024 × 4032</span>
@@ -80,7 +92,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251003_215311.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:005.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:005</span>
             <span class="item-size">4032 × 3024</span>
@@ -90,7 +102,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251004_000142.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:006.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:006</span>
             <span class="item-size">3024 × 4032</span>
@@ -100,7 +112,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251005_202325.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:007.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:007</span>
             <span class="item-size">3024 × 4032</span>
@@ -110,7 +122,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251005_202927.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:008.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:008</span>
             <span class="item-size">4032 × 3024</span>
@@ -120,7 +132,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251005_220157.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:009.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:009</span>
             <span class="item-size">3024 × 4032</span>
@@ -130,7 +142,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251005_224542.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:010.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:010</span>
             <span class="item-size">4032 × 3024</span>
@@ -140,7 +152,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251006_125516.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:011.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:011</span>
             <span class="item-size">3024 × 4032</span>
@@ -150,7 +162,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251006_131509.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:012.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:012</span>
             <span class="item-size">3024 × 4032</span>
@@ -160,7 +172,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_20251006_194119.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:013.JPG" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:013</span>
             <span class="item-size">3024 × 4032</span>
@@ -170,7 +182,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_2064.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:014.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:014</span>
             <span class="item-size">1440 × 1920</span>
@@ -180,7 +192,7 @@
         </figure>
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/IMG_9192.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
+          <img src="assets/images/P:015.jpg" alt="Gallery photo by Nadar Lau" loading="lazy" decoding="async" />
           <figcaption>
             <span class="item-number">P:015</span>
             <span class="item-size">1920 × 1440</span>

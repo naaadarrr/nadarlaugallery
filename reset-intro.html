@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Intro Page</title>
+  <style>
+    body {
+      font-family: "Courier New", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 500px;
+    }
+    button {
+      font-family: inherit;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #111;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #333;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      background: #e8f5e9;
+      border-radius: 4px;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>重置入口页</h1>
+    <p>点击下面的按钮来清除存储，然后刷新主页面即可重新看到入口页。</p>
+    <button onclick="resetIntro()">清除入口页标记</button>
+    <button onclick="window.location.href='index.html?showIntro=true'">直接打开入口页</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    function resetIntro() {
+      localStorage.removeItem('introShown');
+      const status = document.getElementById('status');
+      status.className = 'status';
+      status.textContent = '✓ 已清除！现在可以刷新 index.html 页面查看入口页了。';
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+    }
+
+    // 检查当前状态
+    window.onload = function() {
+      const introShown = localStorage.getItem('introShown');
+      const status = document.getElementById('status');
+      if (introShown === 'true') {
+        status.className = 'status';
+        status.style.background = '#fff3cd';
+        status.style.color = '#856404';
+        status.textContent = '当前状态：入口页已标记为已显示';
+      } else {
+        status.className = 'status';
+        status.style.background = '#e8f5e9';
+        status.style.color = '#2e7d32';
+        status.textContent = '当前状态：入口页未显示过';
+      }
+    };
+  </script>
+</body>
+</html>
+
