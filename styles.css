@@ -6,14 +6,14 @@
   --font-app: "Courier New", Courier, monospace;
   
   /* Colors - light mode (default) */
-  --bg-color: #fff;
-  --text-color: #111;
-  --text-color-secondary: rgb(153, 153, 153);
-  --border-color: rgba(0, 0, 0, 0.1);
-  --hover-bg: rgba(0, 0, 0, 0.03);
-  --hover-bg-light: rgba(0, 0, 0, 0.05);
-  --lightbox-bg: #fff;
-  --intro-bg: #fff;
+  --bg-color: #87797A;
+  --text-color: #C7F3BB;
+  --text-color-secondary: rgba(199, 243, 187, 0.8);
+  --border-color: rgba(199, 243, 187, 0.1);
+  --hover-bg: rgba(199, 243, 187, 0.03);
+  --hover-bg-light: rgba(199, 243, 187, 0.05);
+  --lightbox-bg: #87797A;
+  --intro-bg: #87797A;
   
   /* Skeleton colors */
   --skeleton-1: #e0e0e0;
@@ -23,7 +23,7 @@
   /* Focus ring */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: #111;
+  --focus-ring-color: #C7F3BB;
   
   /* Animation durations */
   --fade-in-duration: 0.6s;
@@ -107,12 +107,15 @@ body {
   font-size: 1rem;
   line-height: 1.8;
   margin-bottom: 1.5rem;
+  color: var(--text-color);
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transform: translateY(20px);
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.intro-paragraph.fade-in {
+.intro-paragraph.fade-in.show {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .enter-btn {
@@ -126,12 +129,15 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   opacity: 0;
+  transform: translateY(20px);
   pointer-events: none;
 }
 
-.enter-btn.fade-in-button {
+.enter-btn.fade-in-button.show {
   opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1), all 0.3s ease;
 }
 
 .enter-btn:hover {
@@ -188,6 +194,8 @@ body:not(.intro-visible) main {
   width: 100%;
   padding: 0.5rem;
   background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   z-index: 1000;
   display: flex;
   justify-content: space-between;
@@ -208,7 +216,7 @@ body:not(.intro-visible) main {
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
-  padding-right: 8px; /* 🔥 切换tab整体距离右侧的padding为8px */
+  padding-right: 24px; /* 🔥 切换tab整体距离右侧的padding为24px */
 }
 
 .site-header h1 {
@@ -276,40 +284,68 @@ body:not(.intro-visible) main {
 .view-toggle {
   display: flex;
   gap: 0;
-  background: var(--bg-color);
-  height: calc(1.5rem + 16px + 2px);
+  background: transparent;
+  align-items: center;
 }
 
 .toggle-btn {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--text-color-secondary);
   background: transparent;
   border: none;
-  padding: 8px 20px;
+  padding: 0.75rem 1.5rem;
   cursor: pointer;
-  transition: color 0.05s ease, background 0.05s ease;
-  width: 60px; /* 🔥 固定宽度，确保list和grid按钮一致 */
+  transition: color 0.3s ease;
+  min-width: 60px;
+  min-height: 44px;
+  box-sizing: border-box;
   position: relative;
   user-select: none;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .toggle-btn:hover {
   color: var(--text-color);
-  background: var(--hover-bg);
+  background: transparent;
+}
+
+.toggle-btn:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background-color: var(--text-color);
+  animation: underlineExpandCenter 0.3s ease forwards;
+}
+
+@keyframes underlineExpandCenter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 .toggle-btn.active {
   color: var(--text-color);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .toggle-btn.active::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
   height: 1px;
   background-color: var(--text-color);
@@ -498,6 +534,13 @@ main {
   color: var(--text-color-secondary);
 }
 
+/* 🔥 预加载时隐藏图片编号信息 */
+.gallery.grid .item:not(.loaded) .item-number,
+.gallery.mode-grid .item:not(.loaded) .item-number {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .gallery.grid .item-size,
 .gallery.mode-grid .item-size {
   display: none !important; /* 🔥 grid模式只显示编号，隐藏尺寸 */
@@ -514,7 +557,7 @@ main {
 
 .photo-caption {
   font-size: 0.875rem;
-  color: #666;
+  color: rgba(199, 243, 187, 0.8);
   line-height: 1.4;
   text-align: left;
   font-weight: 400;
@@ -557,6 +600,7 @@ main {
   gap: 2rem;
   padding: 1rem 0;
   border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
 }
 
 .gallery.list img,
@@ -661,7 +705,7 @@ main {
 .lightbox img {
   max-width: calc(100vw - 200px);
   max-height: calc(95vh - var(--thumb-size) - var(--thumb-gap) * 2 - 60px);
-  border-radius: var(--radius);
+  border-radius: 0;
   transition: opacity var(--lightbox-fade-duration) ease, transform var(--lightbox-fade-duration) ease;
   margin-bottom: calc(var(--thumb-size) + var(--thumb-gap) * 2 + 40px);
   backface-visibility: hidden;
@@ -686,14 +730,41 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s ease, background 0.2s ease;
-  border-radius: 4px;
+  transition: color 0.3s ease;
+}
+
+.lightbox .close::after,
+.lightbox .prev::after,
+.lightbox .next::after {
+  content: '';
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background-color: var(--text-color);
 }
 
 .lightbox .close:hover,
 .lightbox .prev:hover,
 .lightbox .next:hover {
-  background: var(--hover-bg);
+  background: transparent;
+  color: var(--text-color);
+}
+
+.lightbox .close:hover::after,
+.lightbox .prev:hover::after,
+.lightbox .next:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background-color: var(--text-color);
+  animation: underlineExpandCenter 0.3s ease forwards;
 }
 
 .lightbox .close {
@@ -730,7 +801,7 @@ main {
   gap: var(--thumb-gap);
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: rgba(199, 243, 187, 0.2) transparent;
   padding: var(--thumb-gap);
   max-width: calc(100vw - 40px);
 }
@@ -740,27 +811,50 @@ main {
 }
 
 .lb-thumbs::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(199, 243, 187, 0.2);
   border-radius: 3px;
 }
 
 .lb-thumb {
+  position: relative;
   width: var(--thumb-size);
   height: var(--thumb-size);
   min-width: var(--thumb-size);
   min-height: var(--thumb-size);
-  object-fit: cover;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
   cursor: pointer;
-  border-radius: var(--radius);
+  overflow: hidden;
   opacity: 0.2;
   transition: opacity 0.2s ease;
-  border: 2px solid transparent;
+}
+
+.lb-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.lb-thumb .skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
 }
 
 .lb-thumb:hover {
   opacity: 0.6;
 }
 
+.lb-thumb[aria-selected="true"],
 .lb-thumb.active {
   opacity: 1;
   border-color: var(--text-color);

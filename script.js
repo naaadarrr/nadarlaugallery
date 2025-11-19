@@ -78,24 +78,27 @@ if (!introShown) {
   // Show intro page
   document.body.classList.add('intro-visible');
   
-  // 淡入动画：逐段显示文字，最后显示按钮
+  // 淡入动画：逐段显示文字，最后显示按钮（丝滑缓动效果）
   function animateFadeIn() {
     const paragraphs = document.querySelectorAll('.fade-in');
     const button = document.querySelector('.fade-in-button');
     
-    // 逐段显示文字（每段间隔 0.8s）
+    // 逐段显示文字（每段间隔 1s，使用缓动函数）
     paragraphs.forEach((p, i) => {
       setTimeout(() => {
+        // 确保元素可见后再添加动画类
+        p.style.transition = 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1)';
         p.classList.add('show');
-      }, i * 800);
+      }, i * 1000);
     });
     
-    // 最后显示按钮（在所有段落显示完成后）
+    // 最后显示按钮（在所有段落显示完成后，延迟 0.5s）
     setTimeout(() => {
       if (button) {
+        button.style.transition = 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1), all 0.3s ease';
         button.classList.add('show');
       }
-    }, paragraphs.length * 800);
+    }, paragraphs.length * 1000 + 500);
   }
   
   // 页面加载完成后开始动画
@@ -160,7 +163,7 @@ const gallery = document.getElementById('gallery');
 const galleryContainer = gallery.closest('.gallery-container');
 const btnGrid = document.getElementById('btn-grid');
 const btnList = document.getElementById('btn-list');
-const btnFeed = document.getElementById('btn-feed');
+const btnFeed = document.getElementById('btn-feed'); // May be null if not in HTML
 
 // Load saved view preference or default to grid
 const savedView = localStorage.getItem('galleryView') || 'grid';
@@ -192,18 +195,18 @@ function setView(view, isInitial = false) {
       gallery.classList.add('grid', 'mode-grid');
       btnGrid.classList.add('active');
       btnList.classList.remove('active');
-      btnFeed.classList.remove('active');
+      if (btnFeed) btnFeed.classList.remove('active');
       updateGridCaptions();
     } else if (view === 'list') {
       gallery.classList.remove('grid', 'feed', 'mode-grid', 'mode-feed');
       gallery.classList.add('list', 'mode-list');
       btnList.classList.add('active');
       btnGrid.classList.remove('active');
-      btnFeed.classList.remove('active');
+      if (btnFeed) btnFeed.classList.remove('active');
     } else if (view === 'feed') {
       gallery.classList.remove('grid', 'list', 'mode-grid', 'mode-list');
       gallery.classList.add('feed', 'mode-feed');
-      btnFeed.classList.add('active');
+      if (btnFeed) btnFeed.classList.add('active');
       btnGrid.classList.remove('active');
       btnList.classList.remove('active');
     }
@@ -225,7 +228,7 @@ function setView(view, isInitial = false) {
 
   btnGrid.disabled = true;
   btnList.disabled = true;
-  btnFeed.disabled = true;
+  if (btnFeed) btnFeed.disabled = true;
 
   // 检测是否是 Feed → Grid 切换，预先优化性能
   const isFeedToGrid = (gallery.classList.contains('feed') || gallery.classList.contains('mode-feed')) && view === 'grid';
@@ -256,16 +259,16 @@ function setView(view, isInitial = false) {
     gallery.classList.add('grid', 'mode-grid');
     btnGrid.classList.add('active');
     btnList.classList.remove('active');
-    btnFeed.classList.remove('active');
+    if (btnFeed) btnFeed.classList.remove('active');
     updateGridCaptions();
   } else if (view === 'list') {
     gallery.classList.add('list', 'mode-list');
     btnList.classList.add('active');
     btnGrid.classList.remove('active');
-    btnFeed.classList.remove('active');
+    if (btnFeed) btnFeed.classList.remove('active');
   } else if (view === 'feed') {
     gallery.classList.add('feed', 'mode-feed');
-    btnFeed.classList.add('active');
+    if (btnFeed) btnFeed.classList.add('active');
     btnGrid.classList.remove('active');
     btnList.classList.remove('active');
   }
@@ -508,16 +511,45 @@ function continueFlipAnimation(firstRects, lastRects, currentMode, view, items, 
 
       btnGrid.disabled = false;
       btnList.disabled = false;
-      btnFeed.disabled = false;
+      if (btnFeed) btnFeed.disabled = false;
     }, animationDuration + maxDelay + 100);
   });
 
   localStorage.setItem('galleryView', view);
 }
 
+/**
+ * Attach click handlers to list mode items using event delegation
+ */
+function attachListModeHandlers() {
+  // Use event delegation on the gallery container
+  gallery.addEventListener('click', (e) => {
+    // Only handle clicks in list mode
+    if (!gallery.classList.contains('list') && !gallery.classList.contains('mode-list')) {
+      return;
+    }
+    
+    // Find the clicked item
+    const item = e.target.closest('.gallery.list .item, .gallery.mode-list .item');
+    if (!item) return;
+    
+    // Find the image in this item
+    const img = item.querySelector('img');
+    if (img) {
+      const imgIndex = images.indexOf(img);
+      if (imgIndex !== -1) {
+        // Only trigger if clicking on the item itself, not on nested interactive elements
+        if (e.target === item || e.target === img || e.target.closest('figcaption')) {
+          openLightbox(imgIndex);
+        }
+      }
+    }
+  });
+}
+
 btnGrid.addEventListener('click', () => setView('grid'));
 btnList.addEventListener('click', () => setView('list'));
-btnFeed.addEventListener('click', () => setView('feed'));
+if (btnFeed) btnFeed.addEventListener('click', () => setView('feed'));
 
 // ============================================
 // Skeleton Loading with Sequential Reveal
@@ -968,10 +1000,17 @@ async function loadThumbnail(thumbBtn, imgSrc) {
     const hideSkeleton = () => {
       if (thumbImg.classList.contains('loaded')) return; // Already processed
       thumbImg.classList.add('loaded');
-      // Hide skeleton completely
-      skeleton.style.opacity = '0';
-      skeleton.style.visibility = 'hidden';
-      skeleton.style.zIndex = '-1';
+      // Hide skeleton completely - remove from DOM to avoid overlay issues
+      if (skeleton && skeleton.parentNode) {
+        skeleton.style.opacity = '0';
+        skeleton.style.visibility = 'hidden';
+        // Remove skeleton after transition
+        setTimeout(() => {
+          if (skeleton && skeleton.parentNode) {
+            skeleton.remove();
+          }
+        }, 200);
+      }
       resolve();
     };
     
@@ -979,9 +1018,16 @@ async function loadThumbnail(thumbBtn, imgSrc) {
     const handleError = () => {
       if (thumbImg.classList.contains('loaded')) return; // Already processed
       // Hide skeleton even on error
-      skeleton.style.opacity = '0';
-      skeleton.style.visibility = 'hidden';
-      skeleton.style.zIndex = '-1';
+      if (skeleton && skeleton.parentNode) {
+        skeleton.style.opacity = '0';
+        skeleton.style.visibility = 'hidden';
+        // Remove skeleton after transition
+        setTimeout(() => {
+          if (skeleton && skeleton.parentNode) {
+            skeleton.remove();
+          }
+        }, 200);
+      }
       // Still mark as loaded to show the broken image icon
       thumbImg.classList.add('loaded');
       resolve(); // Still resolve to avoid blocking
@@ -1236,9 +1282,12 @@ function updateThumbnailStates() {
     const isActive = index === currentIndex;
     btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     btn.setAttribute('tabindex', isActive ? '0' : '-1');
-    // Opacity controlled by CSS based on aria-selected attribute
-    // Selected: opacity 1 (via [aria-selected="true"])
-    // Non-selected: opacity 0.2 (default)
+    // Update active class for CSS styling
+    if (isActive) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
   });
 }
 
@@ -1612,6 +1661,9 @@ function attachLightboxHandlers() {
   images.forEach((img, idx) => {
     img.addEventListener('click', () => openLightbox(idx));
   });
+  
+  // Attach list mode handlers using event delegation
+  attachListModeHandlers();
   
   // Attach lightbox control handlers
   if (closeBtn) {
