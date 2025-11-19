@@ -25,7 +25,7 @@ let globalAudio = null;
 
 function initGlobalAudio() {
   if (!globalAudio) {
-    globalAudio = new Audio('assets/Audio/All you are going to want to do is get back there.mp3');
+    globalAudio = new Audio('assets/Audio/A3 - Late afternoon drifting.mp3');
     globalAudio.loop = true;
     globalAudio.volume = 0;
     globalAudio.preload = 'auto';
@@ -68,14 +68,13 @@ const enterBtn = document.getElementById('enter-btn');
 const rippleOverlay = document.getElementById('ripple-overlay');
 const introParagraphs = document.querySelectorAll('.intro-paragraph');
 
-// Check if intro page should be shown (check localStorage)
-// For development: add ?showIntro=true to URL to force show intro page
+// Check if intro page should be shown
+// For development: add ?skipIntro=true to URL to skip intro page
 const urlParams = new URLSearchParams(window.location.search);
-const forceShowIntro = urlParams.get('showIntro') === 'true';
-const introShown = !forceShowIntro && localStorage.getItem('introShown') === 'true';
+const skipIntro = urlParams.get('skipIntro') === 'true';
 
-if (!introShown) {
-  // Show intro page
+if (!skipIntro) {
+  // Show intro page (always show unless skipIntro=true)
   document.body.classList.add('intro-visible');
   
   // 淡入动画：逐段显示文字，最后显示按钮（丝滑缓动效果）
@@ -137,7 +136,6 @@ if (!introShown) {
     setTimeout(() => {
       introPage.classList.add('hidden');
       document.body.classList.remove('intro-visible');
-      localStorage.setItem('introShown', 'true');
       
       // Clean up animation classes
       rippleOverlay.classList.remove('active', 'circle-animate');
@@ -152,10 +150,6 @@ if (!introShown) {
       enterBtn.click();
     }
   });
-} else {
-  // Intro already shown, hide it immediately
-  introPage.classList.add('hidden');
-  document.body.classList.remove('intro-visible');
 }
 
 // View toggle functionality - Based on main branch FLIP animation
@@ -1715,3 +1709,144 @@ lightbox.addEventListener('touchend', (e) => {
     diffX > 0 ? showPrev() : showNext();
   }
 });
+
+// ============================================
+// List Mode Parallax Scroll Effect - 滑动落差效果
+// ============================================
+let lastScrollY = window.scrollY;
+let scrollVelocity = 0;
+let isScrolling = false;
+let scrollTimeout = null;
+
+function handleListScroll() {
+  // Only apply effect in list mode
+  if (!gallery.classList.contains('list') && !gallery.classList.contains('mode-list')) {
+    return;
+  }
+  
+  const currentScrollY = window.scrollY;
+  const scrollDelta = currentScrollY - lastScrollY;
+  scrollVelocity = scrollDelta;
+  
+  const listItems = Array.from(gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item'));
+  if (listItems.length === 0) return;
+  
+  listItems.forEach((item, index) => {
+    // Calculate delay factor based on item index (later items have more delay)
+    const itemIndexRatio = index / Math.max(listItems.length - 1, 1);
+    const delayFactor = itemIndexRatio * 0.8;
+    
+    // Apply parallax effect based on scroll direction (only vertical transform)
+    let translateY = 0;
+    if (scrollDelta > 0) {
+      // Scrolling down - items below lag behind
+      translateY = delayFactor * scrollDelta * 0.6;
+    } else if (scrollDelta < 0) {
+      // Scrolling up - last items follow slower (关键效果)
+      const reverseDelayFactor = (1 - itemIndexRatio) * 0.9;
+      translateY = -reverseDelayFactor * Math.abs(scrollDelta) * 0.7;
+      
+      // Extra delay for last 3 items when scrolling up
+      if (index >= listItems.length - 3) {
+        const bottomDelay = (listItems.length - index) / 3;
+        translateY -= bottomDelay * Math.abs(scrollDelta) * 0.5;
+      }
+    }
+    
+    // Apply transform (only Y axis, no X axis movement)
+    item.style.transform = `translateY(${translateY}px)`;
+  });
+  
+  lastScrollY = currentScrollY;
+  isScrolling = true;
+  
+  // Reset transforms when scrolling stops
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    isScrolling = false;
+    const listItems = gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item');
+    listItems.forEach(item => {
+      item.style.transform = '';
+    });
+  }, 150);
+}
+
+// Throttled scroll handler using requestAnimationFrame
+let rafId = null;
+function onScroll() {
+  if (rafId) return;
+  
+  rafId = requestAnimationFrame(() => {
+    handleListScroll();
+    rafId = null;
+  });
+}
+
+// Initialize scroll effect
+window.addEventListener('scroll', onScroll, { passive: true });
+
+// ============================================
+// Header Scroll Effect - 方案6：组合效果
+// ============================================
+let lastHeaderScrollY = window.scrollY;
+let headerScrollDirection = 0;
+const siteHeader = document.querySelector('.site-header');
+
+function handleHeaderScroll() {
+  const currentScrollY = window.scrollY;
+  const scrollDelta = currentScrollY - lastHeaderScrollY;
+  
+  // Determine scroll direction
+  if (scrollDelta > 5) {
+    // Scrolling down
+    headerScrollDirection = 1;
+    if (currentScrollY > 100) { // Only hide after scrolling 100px
+      siteHeader.classList.remove('scrolled-up');
+      siteHeader.classList.add('scrolled-down');
+    }
+  } else if (scrollDelta < -5) {
+    // Scrolling up
+    headerScrollDirection = -1;
+    siteHeader.classList.remove('scrolled-down');
+    siteHeader.classList.add('scrolled-up');
+  }
+  
+  // Show header at top of page
+  if (currentScrollY < 50) {
+    siteHeader.classList.remove('scrolled-down', 'scrolled-up');
+  }
+  
+  lastHeaderScrollY = currentScrollY;
+}
+
+// Throttled header scroll handler
+let headerRafId = null;
+function onHeaderScroll() {
+  if (headerRafId) return;
+  
+  headerRafId = requestAnimationFrame(() => {
+    handleHeaderScroll();
+    headerRafId = null;
+  });
+}
+
+// Initialize header scroll effect
+window.addEventListener('scroll', onHeaderScroll, { passive: true });
+
+// Reset transforms when switching away from list mode
+// Wrap the original setView function to reset transforms
+(function() {
+  const originalSetView = setView;
+  setView = function(view, isInitial) {
+    originalSetView.call(this, view, isInitial);
+    
+    // Reset transforms when leaving list mode
+    if (view !== 'list') {
+      const listItems = gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item');
+      listItems.forEach(item => {
+        item.style.transform = '';
+        item.style.opacity = '';
+      });
+    }
+  };
+})();

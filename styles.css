@@ -200,8 +200,23 @@ body:not(.intro-visible) main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  transition: opacity 0.5s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
+  transform: translateY(0);
+  opacity: 1;
+  box-shadow: none;
+}
+
+.site-header.scrolled-down {
+  transform: translateY(-100%);
+  opacity: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.site-header.scrolled-up {
+  transform: translateY(0);
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .site-header h1,
@@ -601,6 +616,8 @@ main {
   padding: 1rem 0;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, opacity;
 }
 
 .gallery.list img,
