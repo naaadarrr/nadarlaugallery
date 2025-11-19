@@ -465,12 +465,12 @@ function continueFlipAnimation(firstRects, lastRects, currentMode, view, items, 
         item.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
         item.style.transform = 'none';
         
-        // 切换到Grid模式时，如果item已加载，立即显示编号（不等待transition）
+        // 切换到Grid模式时，如果item已加载，立即显示编号（快速显示）
         if (view === 'grid' && item.classList.contains('loaded')) {
           const itemNumber = item.querySelector('.item-number');
           if (itemNumber) {
-            // 立即显示编号，使用较短的transition
-            itemNumber.style.transition = 'opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            // 立即显示编号，使用非常短的transition
+            itemNumber.style.transition = 'opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.15s cubic-bezier(0.4, 0, 0.2, 1)';
             itemNumber.style.opacity = '1';
             itemNumber.style.visibility = 'visible';
           }
@@ -1807,26 +1807,24 @@ function handleHeaderScroll() {
   const currentScrollY = window.scrollY;
   const scrollDelta = currentScrollY - lastHeaderScrollY;
   
-  // Show header at top of page
-  if (currentScrollY < 50) {
-    siteHeader.classList.remove('scrolled-down', 'scrolled-up');
-    lastHeaderScrollY = currentScrollY;
-    return;
-  }
-  
   // Determine scroll direction
   if (scrollDelta > 5) {
-    // Scrolling down - hide header
+    // Scrolling down
     headerScrollDirection = 1;
     if (currentScrollY > 100) { // Only hide after scrolling 100px
       siteHeader.classList.remove('scrolled-up');
       siteHeader.classList.add('scrolled-down');
     }
   } else if (scrollDelta < -5) {
-    // Scrolling up - hide header (consistent behavior for both grid and list)
+    // Scrolling up
     headerScrollDirection = -1;
-    siteHeader.classList.remove('scrolled-up');
-    siteHeader.classList.add('scrolled-down');
+    siteHeader.classList.remove('scrolled-down');
+    siteHeader.classList.add('scrolled-up');
+  }
+  
+  // Show header at top of page
+  if (currentScrollY < 50) {
+    siteHeader.classList.remove('scrolled-down', 'scrolled-up');
   }
   
   lastHeaderScrollY = currentScrollY;

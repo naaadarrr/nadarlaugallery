@@ -511,10 +511,10 @@ main {
 .gallery.mode-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 3rem 1.5rem;
+  gap: 6rem 2rem;
   align-items: start;
-  margin-bottom: -2rem;
-  padding-bottom: 2rem;
+  margin-bottom: -4rem;
+  padding-bottom: 4rem;
   margin-top: 0;
   padding-top: 0;
   /* 🔥 禁止内部滚动，超出内容会被裁剪 */
@@ -562,7 +562,7 @@ main {
   color: var(--text-color-secondary);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 🔥 图片加载完成后渐现编号信息 */
