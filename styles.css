@@ -115,6 +115,7 @@ body::-webkit-scrollbar {
 }
 
 .intro-paragraph {
+  font-family: var(--font-app);
   font-size: 1rem;
   line-height: 1.8;
   margin-bottom: 1.5rem;
@@ -130,7 +131,7 @@ body::-webkit-scrollbar {
 }
 
 .enter-btn {
-  font-family: inherit;
+  font-family: var(--font-app);
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-color);
@@ -243,6 +244,7 @@ body:not(.intro-visible) main {
 }
 
 .site-header h1 {
+  font-family: var(--font-app);
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-color);
@@ -253,7 +255,7 @@ body:not(.intro-visible) main {
 
 /* Theme toggle button */
 .theme-toggle-btn {
-  font-family: inherit;
+  font-family: var(--font-app);
   font-size: 16px;
   font-weight: 600;
   color: var(--text-color-secondary);
@@ -312,6 +314,7 @@ body:not(.intro-visible) main {
 }
 
 .toggle-btn {
+  font-family: var(--font-app);
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-color-secondary);
@@ -547,21 +550,26 @@ main {
   flex-direction: column;
   gap: 0.25rem;
   margin-top: 0.5rem;
+  font-family: var(--font-app);
   font-size: 0.875rem;
   color: var(--text-color-secondary);
 }
 
 .gallery.grid .item-number,
 .gallery.mode-grid .item-number {
+  font-family: var(--font-app);
   font-weight: 400;
   color: var(--text-color-secondary);
-}
-
-/* 🔥 预加载时隐藏图片编号信息 */
-.gallery.grid .item:not(.loaded) .item-number,
-.gallery.mode-grid .item:not(.loaded) .item-number {
   opacity: 0;
   visibility: hidden;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 🔥 图片加载完成后渐现编号信息 */
+.gallery.grid .item.loaded .item-number,
+.gallery.mode-grid .item.loaded .item-number {
+  opacity: 1;
+  visibility: visible;
 }
 
 .gallery.grid .item-size,
@@ -579,6 +587,7 @@ main {
 }
 
 .photo-caption {
+  font-family: var(--font-app);
   font-size: 0.875rem;
   color: rgba(199, 243, 187, 0.8);
   line-height: 1.4;
@@ -648,9 +657,11 @@ main {
   opacity: 1;
   position: relative;
   z-index: 3;
+  font-family: var(--font-app);
 }
 
 .gallery.mode-list .item-number {
+  font-family: var(--font-app);
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--text-color-secondary);
@@ -659,6 +670,7 @@ main {
 }
 
 .gallery.mode-list .item-size {
+  font-family: var(--font-app);
   font-size: 0.875rem;
   font-weight: normal;
   color: var(--text-color-secondary);
@@ -666,6 +678,7 @@ main {
 }
 
 .gallery.mode-list .item-year {
+  font-family: var(--font-app);
   font-size: 0.875rem;
   font-weight: normal;
   color: var(--text-color-secondary);
@@ -745,6 +758,7 @@ main {
   background: transparent;
   border: none;
   color: var(--text-color);
+  font-family: var(--font-app);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -891,6 +905,7 @@ main {
   left: 50%;
   transform: translateX(-50%);
   color: var(--text-color);
+  font-family: var(--font-app);
   font-size: 0.875rem;
   z-index: 2002;
 }
