@@ -6,14 +6,14 @@
   --font-app: "Courier New", Courier, monospace;
   
   /* Colors - light mode (default) */
-  --bg-color: #87797A;
-  --text-color: #C7F3BB;
-  --text-color-secondary: rgba(199, 243, 187, 0.8);
-  --border-color: rgba(199, 243, 187, 0.1);
-  --hover-bg: rgba(199, 243, 187, 0.03);
-  --hover-bg-light: rgba(199, 243, 187, 0.05);
-  --lightbox-bg: #87797A;
-  --intro-bg: #87797A;
+  --bg-color: #F4FFD7;
+  --text-color: #2d5016;
+  --text-color-secondary: rgba(45, 80, 22, 0.8);
+  --border-color: rgba(45, 80, 22, 0.1);
+  --hover-bg: rgba(45, 80, 22, 0.03);
+  --hover-bg-light: rgba(45, 80, 22, 0.05);
+  --lightbox-bg: #F4FFD7;
+  --intro-bg: #F4FFD7;
   
   /* Skeleton colors */
   --skeleton-1: #e0e0e0;
@@ -23,7 +23,7 @@
   /* Focus ring */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: #C7F3BB;
+  --focus-ring-color: #2d5016;
   
   /* Animation durations */
   --fade-in-duration: 0.6s;
@@ -41,14 +41,14 @@
 
 /* Dark mode theme */
 [data-theme="dark"] {
-  --bg-color: #111;
+  --bg-color: #1b1d16;
   --text-color: #fff;
   --text-color-secondary: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.1);
   --hover-bg: rgba(255, 255, 255, 0.05);
   --hover-bg-light: rgba(255, 255, 255, 0.08);
-  --lightbox-bg: #111;
-  --intro-bg: #111;
+  --lightbox-bg: #1b1d16;
+  --intro-bg: #1b1d16;
   --skeleton-1: #2a2a2a;
   --skeleton-2: #333;
   --image-placeholder-bg: #1a1a1a;
@@ -589,7 +589,7 @@ main {
 .photo-caption {
   font-family: var(--font-app);
   font-size: 0.875rem;
-  color: rgba(199, 243, 187, 0.8);
+  color: var(--text-color-secondary);
   line-height: 1.4;
   text-align: left;
   font-weight: 400;
@@ -840,7 +840,7 @@ main {
   gap: var(--thumb-gap);
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(199, 243, 187, 0.2) transparent;
+  scrollbar-color: rgba(45, 80, 22, 0.2) transparent;
   padding: var(--thumb-gap);
   max-width: calc(100vw - 40px);
 }
@@ -850,7 +850,7 @@ main {
 }
 
 .lb-thumbs::-webkit-scrollbar-thumb {
-  background: rgba(199, 243, 187, 0.2);
+  background: rgba(45, 80, 22, 0.2);
   border-radius: 3px;
 }
 
