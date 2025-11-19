@@ -238,7 +238,7 @@ body:not(.intro-visible) main {
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   margin-left: auto;
   padding-right: 24px; /* 🔥 切换tab整体距离右侧的padding为24px */
 }
@@ -562,7 +562,7 @@ main {
   color: var(--text-color-secondary);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 🔥 图片加载完成后渐现编号信息 */

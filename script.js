@@ -461,9 +461,20 @@ function continueFlipAnimation(firstRects, lastRects, currentMode, view, items, 
           figcaption.style.opacity = '0';
         }
       } else {
-        // 其他切换（包括切换到List）
+        // 其他切换（包括切换到Grid和List）
         item.style.transition = `transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`;
         item.style.transform = 'none';
+        
+        // 切换到Grid模式时，如果item已加载，立即显示编号（不等待transition）
+        if (view === 'grid' && item.classList.contains('loaded')) {
+          const itemNumber = item.querySelector('.item-number');
+          if (itemNumber) {
+            // 立即显示编号，使用较短的transition
+            itemNumber.style.transition = 'opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            itemNumber.style.opacity = '1';
+            itemNumber.style.visibility = 'visible';
+          }
+        }
         
         // 切换到List模式时，显示figcaption
         if (view === 'list') {
