@@ -110,6 +110,12 @@ if (!skipIntro) {
   
   // Handle Enter button click
   enterBtn.addEventListener('click', (e) => {
+    // Step 1.3: Remove body.intro-visible class IMMEDIATELY when user clicks enter
+    document.body.classList.remove('intro-visible');
+    
+    // Step 1.4: Ensure body regains overflow-y: auto so page can scroll
+    document.body.style.overflowY = 'auto';
+    
     // Get button position for circle origin
     const buttonRect = enterBtn.getBoundingClientRect();
     const centerX = buttonRect.left + buttonRect.width / 2;
@@ -132,13 +138,16 @@ if (!skipIntro) {
     // Trigger circle reveal animation
     rippleOverlay.classList.add('active', 'circle-animate');
     
-    // Hide intro page after animation completes (900ms)
+    // Step 1.2: After fade-out animation, REMOVE the .intro-page element from DOM completely
+    // Animation duration is 900ms, wait for it to complete then remove
     setTimeout(() => {
-      introPage.classList.add('hidden');
-      document.body.classList.remove('intro-visible');
-      
       // Clean up animation classes
       rippleOverlay.classList.remove('active', 'circle-animate');
+      
+      // Step 1.2: Remove intro-page from DOM completely
+      if (introPage && introPage.parentNode) {
+        introPage.remove();
+      }
       
       // Gallery page will fade in via CSS transition
     }, 900); // Match animation duration
@@ -146,7 +155,8 @@ if (!skipIntro) {
   
   // Also handle Enter key press
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !introPage.classList.contains('hidden') && enterBtn.classList.contains('show')) {
+    // 🔥 检查 introPage 是否仍然存在（可能已被移除）
+    if (e.key === 'Enter' && introPage && !introPage.classList.contains('hidden') && enterBtn.classList.contains('show')) {
       enterBtn.click();
     }
   });
@@ -745,9 +755,11 @@ function updateSkeletonColor(item, img) {
  */
 async function loadImage(item, img, index) {
   return new Promise((resolve, reject) => {
-    // Set fetchpriority for first viewport images
+    // 🔥 设置 fetchpriority 和提前解码，优化加载性能
     if (index < FIRST_VIEWPORT_COUNT) {
       img.fetchPriority = 'high';
+    } else if (index < FIRST_VIEWPORT_COUNT * 3) {
+      img.fetchPriority = 'auto'; // 预加载的图片使用 auto 优先级
     }
     
     // Update skeleton color and size based on image (before loading)
@@ -916,7 +928,7 @@ function initImageLoader() {
     });
   }, {
     threshold: INTERSECTION_THRESHOLD,
-    rootMargin: '50px' // Start loading slightly before viewport
+    rootMargin: '200px' // 🔥 提前 200px 开始加载，避免滚动时解码阻塞
   });
   
   // Observe all items
@@ -927,8 +939,9 @@ function initImageLoader() {
     }
   });
   
-  // Load first viewport images immediately
-  items.slice(0, FIRST_VIEWPORT_COUNT).forEach((item, index) => {
+  // 🔥 预加载前几屏的图片，避免滚动时解码阻塞
+  const PRELOAD_COUNT = Math.min(FIRST_VIEWPORT_COUNT * 3, items.length); // 预加载前 3 屏
+  items.slice(0, PRELOAD_COUNT).forEach((item, index) => {
     const img = item.querySelector('img');
     if (img) {
       loadingQueue.push({ item, img, index });
@@ -1730,8 +1743,16 @@ let isScrolling = false;
 let scrollTimeout = null;
 
 function handleListScroll() {
-  // Only apply effect in list mode
-  if (!gallery.classList.contains('list') && !gallery.classList.contains('mode-list')) {
+  // Only apply effect in list mode - 严格检查，确保 grid 模式不受影响
+  const isListMode = gallery.classList.contains('list') || gallery.classList.contains('mode-list');
+  const isGridMode = gallery.classList.contains('grid') || gallery.classList.contains('mode-grid');
+  
+  // 🔥 如果是 grid 模式，立即返回，不执行任何操作
+  if (isGridMode) {
+    return;
+  }
+  
+  if (!isListMode) {
     return;
   }
   
@@ -1739,12 +1760,19 @@ function handleListScroll() {
   const scrollDelta = currentScrollY - lastScrollY;
   scrollVelocity = scrollDelta;
   
+  // 🔥 严格选择器，只选择 list 模式的 item，避免影响 grid 模式
   const listItems = Array.from(gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item'));
   if (listItems.length === 0) return;
   
-  listItems.forEach((item, index) => {
+  // 🔥 确保不会误选到 grid 模式的 item
+  const validListItems = listItems.filter(item => {
+    const parent = item.closest('.gallery');
+    return parent && (parent.classList.contains('list') || parent.classList.contains('mode-list'));
+  });
+  
+  validListItems.forEach((item, index) => {
     // Calculate delay factor based on item index (later items have more delay)
-    const itemIndexRatio = index / Math.max(listItems.length - 1, 1);
+    const itemIndexRatio = index / Math.max(validListItems.length - 1, 1);
     const delayFactor = itemIndexRatio * 0.8;
     
     // Apply parallax effect based on scroll direction (only vertical transform)
@@ -1758,8 +1786,8 @@ function handleListScroll() {
       translateY = -reverseDelayFactor * Math.abs(scrollDelta) * 0.7;
       
       // Extra delay for last 3 items when scrolling up
-      if (index >= listItems.length - 3) {
-        const bottomDelay = (listItems.length - index) / 3;
+      if (index >= validListItems.length - 3) {
+        const bottomDelay = (validListItems.length - index) / 3;
         translateY -= bottomDelay * Math.abs(scrollDelta) * 0.5;
       }
     }
@@ -1775,9 +1803,13 @@ function handleListScroll() {
   clearTimeout(scrollTimeout);
   scrollTimeout = setTimeout(() => {
     isScrolling = false;
-    const listItems = gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item');
-    listItems.forEach(item => {
-      item.style.transform = '';
+    // 🔥 严格选择器，只重置 list 模式的 item
+    const listItemsToReset = gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item');
+    listItemsToReset.forEach(item => {
+      const parent = item.closest('.gallery');
+      if (parent && (parent.classList.contains('list') || parent.classList.contains('mode-list'))) {
+        item.style.transform = '';
+      }
     });
   }, 150);
 }
@@ -1785,6 +1817,12 @@ function handleListScroll() {
 // Throttled scroll handler using requestAnimationFrame
 let rafId = null;
 function onScroll() {
+  // 🔥 如果是 grid 模式，直接返回，不执行任何操作，避免延迟
+  const isGridMode = gallery.classList.contains('grid') || gallery.classList.contains('mode-grid');
+  if (isGridMode) {
+    return;
+  }
+  
   if (rafId) return;
   
   rafId = requestAnimationFrame(() => {
@@ -1807,30 +1845,21 @@ function handleHeaderScroll() {
   const currentScrollY = window.scrollY;
   const scrollDelta = currentScrollY - lastHeaderScrollY;
   
-  // Determine scroll direction
-  if (scrollDelta > 5) {
-    // Scrolling down
-    headerScrollDirection = 1;
-    if (currentScrollY > 100) { // Only hide after scrolling 100px
-      siteHeader.classList.remove('scrolled-up');
-      siteHeader.classList.add('scrolled-down');
-    }
-  } else if (scrollDelta < -5) {
-    // Scrolling up
-    headerScrollDirection = -1;
-    siteHeader.classList.remove('scrolled-down');
-    siteHeader.classList.add('scrolled-up');
-  }
-  
-  // Show header at top of page
-  if (currentScrollY < 50) {
+  // 🔥 规则：只要图片能往上移（可以向上滚动），header就要消失
+  // 即：当 scrollY > 0 时，header 应该消失
+  if (currentScrollY > 0) {
+    // 可以向上滚动，隐藏 header
+    siteHeader.classList.remove('scrolled-up');
+    siteHeader.classList.add('scrolled-down');
+  } else {
+    // 在页面顶部，显示 header
     siteHeader.classList.remove('scrolled-down', 'scrolled-up');
   }
   
   lastHeaderScrollY = currentScrollY;
 }
 
-// Throttled header scroll handler
+// 🔥 使用 requestAnimationFrame 节流，平衡性能和响应速度
 let headerRafId = null;
 function onHeaderScroll() {
   if (headerRafId) return;
@@ -1844,6 +1873,9 @@ function onHeaderScroll() {
 // Initialize header scroll effect
 window.addEventListener('scroll', onHeaderScroll, { passive: true });
 
+// 🔥 初始化时检查一次，确保规则立即生效
+handleHeaderScroll();
+
 // Reset transforms when switching away from list mode
 // Wrap the original setView function to reset transforms
 (function() {
@@ -1851,13 +1883,31 @@ window.addEventListener('scroll', onHeaderScroll, { passive: true });
   setView = function(view, isInitial) {
     originalSetView.call(this, view, isInitial);
     
-    // Reset transforms when leaving list mode
+    // Reset transforms when leaving list mode - 确保 grid 模式的 item 不受影响
     if (view !== 'list') {
       const listItems = gallery.querySelectorAll('.gallery.list .item, .gallery.mode-list .item');
       listItems.forEach(item => {
-        item.style.transform = '';
-        item.style.opacity = '';
+        const parent = item.closest('.gallery');
+        // 🔥 只重置真正的 list 模式 item，避免影响 grid 模式
+        if (parent && (parent.classList.contains('list') || parent.classList.contains('mode-list'))) {
+          item.style.transform = '';
+          item.style.opacity = '';
+        }
       });
+      
+      // 🔥 确保 grid 模式的 item transform 不被清除（保留 hover 旋转效果）
+      if (view === 'grid') {
+        // 不清除 grid 模式的 transform，保留 hover 旋转效果
+        // 只确保没有残留的 translateY（来自 list 模式）
+        const gridItems = gallery.querySelectorAll('.gallery.grid .item, .gallery.mode-grid .item');
+        gridItems.forEach(item => {
+          const currentTransform = item.style.transform || '';
+          // 如果有 translateY，清除它（这是 list 模式的残留）
+          if (currentTransform.includes('translateY')) {
+            item.style.transform = '';
+          }
+        });
+      }
     }
   };
 })();
@@ -1877,6 +1927,13 @@ window.addEventListener('scroll', onHeaderScroll, { passive: true });
 
   // 初始化 Grid 图片旋转效果
   function initGridImageRotation() {
+    const gallery = document.getElementById('gallery');
+    if (!gallery) return;
+    
+    // 🔥 严格检查，确保只在 grid 模式下执行
+    const isGridMode = gallery.classList.contains('grid') || gallery.classList.contains('mode-grid');
+    if (!isGridMode) return;
+    
     const gridItems = document.querySelectorAll('.gallery.grid .item, .gallery.mode-grid .item');
     
     gridItems.forEach(function(item) {
@@ -1884,19 +1941,35 @@ window.addEventListener('scroll', onHeaderScroll, { passive: true });
       
       if (!img) return;
       
+      // 🔥 确保 item 本身没有 transform（避免与 list scroll handler 冲突）
+      item.style.transform = '';
+      item.style.willChange = 'auto'; // Grid 模式下不使用 will-change，避免滚动卡顿
+      
       let currentRotation = 0; // 当前旋转角度
       
       // 鼠标进入时
       item.addEventListener('mouseenter', function() {
+        // 🔥 再次检查是否是 grid 模式
+        const currentGallery = document.getElementById('gallery');
+        if (!currentGallery || (!currentGallery.classList.contains('grid') && !currentGallery.classList.contains('mode-grid'))) {
+          return;
+        }
+        
         // 生成新的随机角度
         currentRotation = getRandomRotation();
         
-        // 应用旋转到图片
+        // 应用旋转到图片（只修改图片的 transform，不修改 item）
         img.style.transform = `rotate(${currentRotation}deg)`;
       });
       
       // 鼠标离开时
       item.addEventListener('mouseleave', function() {
+        // 🔥 再次检查是否是 grid 模式
+        const currentGallery = document.getElementById('gallery');
+        if (!currentGallery || (!currentGallery.classList.contains('grid') && !currentGallery.classList.contains('mode-grid'))) {
+          return;
+        }
+        
         // 恢复到 0 度
         currentRotation = 0;
         
@@ -1928,4 +2001,86 @@ window.addEventListener('scroll', onHeaderScroll, { passive: true });
       attributeFilter: ['class']
     });
   }
+})();
+
+// ============================================
+// 🔥 强制允许图床区域滚动 - 确保滚动事件不被阻止
+// ============================================
+(function() {
+  const gallery = document.getElementById('gallery');
+  const galleryContainer = document.querySelector('.gallery-container');
+  
+  if (!gallery || !galleryContainer) return;
+  
+  // 🔥 确保 gallery 元素本身没有任何 transform 或定位，完全跟随页面滚动
+  function ensureGalleryFollowsPageScroll() {
+    // 清除任何可能存在的 transform
+    gallery.style.transform = '';
+    gallery.style.top = '';
+    gallery.style.left = '';
+    gallery.style.right = '';
+    gallery.style.bottom = '';
+    gallery.style.position = '';
+    
+    // 确保 gallery-container 也没有 transform
+    galleryContainer.style.transform = '';
+    galleryContainer.style.top = '';
+    galleryContainer.style.left = '';
+    galleryContainer.style.right = '';
+    galleryContainer.style.bottom = '';
+    galleryContainer.style.position = '';
+  }
+  
+  // 初始化时执行一次
+  ensureGalleryFollowsPageScroll();
+  
+  // 监听 DOM 变化，确保 gallery 元素本身不被修改
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+        // 如果 gallery 元素的 style 被修改，检查是否有 transform 或定位
+        const transform = gallery.style.transform;
+        const position = gallery.style.position;
+        if (transform || (position && position !== 'static')) {
+          ensureGalleryFollowsPageScroll();
+        }
+      }
+    });
+  });
+  
+  observer.observe(gallery, {
+    attributes: true,
+    attributeFilter: ['style']
+  });
+  
+  // 强制允许 wheel 事件传播，不阻止默认行为
+  function allowWheelScroll(e) {
+    // 不阻止默认行为，让页面正常滚动
+    // 不调用 preventDefault() 或 stopPropagation()
+  }
+  
+  // 强制允许 touch 事件传播
+  function allowTouchScroll(e) {
+    // 不阻止默认行为，让页面正常滚动
+    // 不调用 preventDefault() 或 stopPropagation()
+  }
+  
+  // 为 gallery 和 gallery-container 添加事件监听器，确保滚动事件不被阻止
+  [gallery, galleryContainer].forEach(element => {
+    if (element) {
+      // 使用 passive: true 确保不阻止滚动
+      element.addEventListener('wheel', allowWheelScroll, { passive: true, capture: false });
+      element.addEventListener('touchstart', allowTouchScroll, { passive: true, capture: false });
+      element.addEventListener('touchmove', allowTouchScroll, { passive: true, capture: false });
+      element.addEventListener('touchend', allowTouchScroll, { passive: true, capture: false });
+    }
+  });
+  
+  // 确保所有子元素也不阻止滚动
+  const allGalleryItems = gallery.querySelectorAll('*');
+  allGalleryItems.forEach(item => {
+    item.addEventListener('wheel', allowWheelScroll, { passive: true, capture: false });
+    item.addEventListener('touchstart', allowTouchScroll, { passive: true, capture: false });
+    item.addEventListener('touchmove', allowTouchScroll, { passive: true, capture: false });
+  });
 })();

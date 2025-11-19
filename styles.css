@@ -6,14 +6,14 @@
   --font-app: "Courier New", Courier, monospace;
   
   /* Colors - light mode (default) */
-  --bg-color: #feffd7;
-  --text-color: #2d5016;
-  --text-color-secondary: rgba(45, 80, 22, 0.8);
-  --border-color: rgba(45, 80, 22, 0.1);
-  --hover-bg: rgba(45, 80, 22, 0.03);
-  --hover-bg-light: rgba(45, 80, 22, 0.05);
-  --lightbox-bg: #feffd7;
-  --intro-bg: #feffd7;
+  --bg-color: #fffffb;
+  --text-color: #4C4C4C;
+  --text-color-secondary: rgba(76, 76, 76, 0.8);
+  --border-color: rgba(76, 76, 76, 0.1);
+  --hover-bg: rgba(76, 76, 76, 0.03);
+  --hover-bg-light: rgba(76, 76, 76, 0.05);
+  --lightbox-bg: #fffffb;
+  --intro-bg: #fffffb;
   
   /* Skeleton colors */
   --skeleton-1: #e0e0e0;
@@ -23,7 +23,7 @@
   /* Focus ring */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: #2d5016;
+  --focus-ring-color: #4C4C4C;
   
   /* Animation durations */
   --fade-in-duration: 0.6s;
@@ -41,14 +41,14 @@
 
 /* Dark mode theme */
 [data-theme="dark"] {
-  --bg-color: #1b1d16;
+  --bg-color: #111111;
   --text-color: #fff;
   --text-color-secondary: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.1);
   --hover-bg: rgba(255, 255, 255, 0.05);
   --hover-bg-light: rgba(255, 255, 255, 0.08);
-  --lightbox-bg: #1b1d16;
-  --intro-bg: #1b1d16;
+  --lightbox-bg: #111111;
+  --intro-bg: #111111;
   --skeleton-1: #2a2a2a;
   --skeleton-2: #333;
   --image-placeholder-bg: #1a1a1a;
@@ -58,7 +58,24 @@
 /* ============================================
    Global Base Styles
    ============================================ */
-html,
+html {
+  font-family: var(--font-app);
+  background: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;  /* 整页滚动 */
+  overflow-x: hidden;
+  /* 显示滚动条用于测试 */
+  scrollbar-width: thin; /* Firefox */
+  -ms-overflow-style: auto; /* IE and Edge */
+}
+
 body {
   font-family: var(--font-app);
   background: var(--bg-color);
@@ -69,18 +86,32 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: auto !important;
-  overflow-y: auto !important;  /* 整页滚动 */
+  min-height: 100%;
+  overflow-y: visible !important;  /* body 不产生滚动条，由 html 处理 */
   overflow-x: hidden;
-  /* 隐藏滚动条但保持滚动功能 */
-  scrollbar-width: none; /* Firefox */
+  position: relative;
+  /* 显示滚动条用于测试 */
+  scrollbar-width: none; /* Firefox - body 不应该有滚动条 */
   -ms-overflow-style: none; /* IE and Edge */
 }
 
-/* 隐藏 WebKit 浏览器的滚动条 */
-html::-webkit-scrollbar,
+/* 显示 WebKit 浏览器的滚动条用于测试 */
+html::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 body::-webkit-scrollbar {
-  display: none;
+  display: none !important;  /* body 不应该有滚动条 */
   width: 0;
   height: 0;
 }
@@ -212,7 +243,7 @@ body:not(.intro-visible) main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
   pointer-events: none;
   transform: translateY(0);
   opacity: 1;
@@ -392,6 +423,12 @@ main {
   padding-bottom: 0;
   background-color: var(--bg-color);
   transition: opacity 0.5s ease;
+  overflow: visible !important;
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
 }
 
 /* ============================================
@@ -410,16 +447,19 @@ main {
   background-color: var(--bg-color);
   display: flex;
   justify-content: center; /* 🔥 确保gallery居中显示 */
+  /* 🔥 强制允许滚动事件传播 */
+  pointer-events: auto !important;
+  touch-action: auto !important;
 }
 
 /* ============================================
    Gallery Styles
    ============================================ */
 .gallery {
-  /* 🔥 禁止内部滚动，超出内容会被裁剪 */
-  overflow: hidden !important;       /* 不显示滚动条，且超出内容会被裁剪 */
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  /* 🔥 禁止内部滚动，但允许旋转时超出部分可见 */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   height: auto !important;           /* 不固定高度 */
   max-height: none !important;       /* 不限制最大高度 */
   position: static !important;
@@ -427,25 +467,43 @@ main {
   width: 100%;
   background-color: var(--bg-color);
   transition: none;
+  /* 🔥 强制允许滚动事件传播 */
+  pointer-events: auto !important;
+  touch-action: auto !important;
 }
 
 #gallery {
-  /* 🔥 禁止内部滚动，超出内容会被裁剪 */
-  overflow: hidden !important;       /* 不显示滚动条，且超出内容会被裁剪 */
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  /* 🔥 禁止内部滚动，但允许旋转时超出部分可见 */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   height: auto !important;           /* 不固定高度 */
   max-height: none !important;       /* 不限制最大高度 */
   position: static !important;
   flex: none !important;
   width: 100%;
   background-color: var(--bg-color);
+  /* 🔥 强制允许滚动事件传播 */
+  pointer-events: auto !important;
+  touch-action: auto !important;
 }
 
 .gallery .item {
   margin: 0;
   padding: 0;
   position: relative;
+  /* will-change 只在需要时设置，避免性能问题 */
+}
+
+/* Grid 模式下不使用 will-change，避免滚动卡顿 */
+.gallery.grid .item,
+.gallery.mode-grid .item {
+  will-change: auto;
+}
+
+/* List 模式下使用 will-change 优化 parallax 效果 */
+.gallery.list .item,
+.gallery.mode-list .item {
   will-change: transform;
 }
 
@@ -511,16 +569,16 @@ main {
 .gallery.mode-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6rem 2rem;
+  gap: 3rem 1.5rem;
   align-items: start;
-  margin-bottom: -4rem;
-  padding-bottom: 4rem;
+  margin-bottom: -2rem;
+  padding-bottom: 2rem;
   margin-top: 0;
   padding-top: 0;
-  /* 🔥 禁止内部滚动，超出内容会被裁剪 */
-  overflow: hidden !important;       /* 不显示滚动条，且超出内容会被裁剪 */
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  /* 🔥 允许旋转时超出部分可见，不产生滚动条 */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   height: auto !important;           /* 不固定高度 */
   max-height: none !important;       /* 不限制最大高度 */
   position: static !important;
@@ -845,7 +903,7 @@ main {
   gap: var(--thumb-gap);
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(45, 80, 22, 0.2) transparent;
+  scrollbar-color: rgba(76, 76, 76, 0.2) transparent;
   padding: var(--thumb-gap);
   max-width: calc(100vw - 40px);
 }
@@ -855,7 +913,7 @@ main {
 }
 
 .lb-thumbs::-webkit-scrollbar-thumb {
-  background: rgba(45, 80, 22, 0.2);
+  background: rgba(76, 76, 76, 0.2);
   border-radius: 3px;
 }
 
@@ -957,13 +1015,15 @@ main {
   overflow-x: visible !important;   /* 水平方向允许超出 */
   overflow-y: visible !important;   /* 垂直方向允许超出 */
   flex: none !important;           /* 不参与 flex 高度填充 */
+  /* 🔥 确保 gallery 元素本身不能独立滚动，完全跟随页面滚动 */
+  transform: none !important;      /* 禁止任何 transform，避免独立滚动 */
+  top: auto !important;             /* 禁止定位偏移 */
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
 }
 
-body, html {
-  height: auto !important;
-  overflow-y: auto !important;     /* 整个页面滚动 */
-  overflow-x: hidden !important;
-}
+/* 删除重复定义，使用上面的统一规则 */
 
 /* 🔥 隐藏所有内部容器的滚动条（确保即使有滚动条也不显示） */
 .gallery-container::-webkit-scrollbar,
@@ -979,6 +1039,7 @@ main::-webkit-scrollbar,
   height: 0 !important;
 }
 
+/* 确保这些容器不产生滚动条 */
 .gallery-container,
 .gallery,
 #gallery,
