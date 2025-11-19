@@ -1861,3 +1861,71 @@ window.addEventListener('scroll', onHeaderScroll, { passive: true });
     }
   };
 })();
+
+// ============================================
+// Grid Image Hover Rotation Effect
+// ============================================
+(function() {
+  // 生成随机旋转角度（±3°~±8°）
+  function getRandomRotation() {
+    // 随机生成 3 到 8 之间的角度
+    const angle = Math.random() * (8 - 3) + 3;
+    // 随机决定正负（顺时针或逆时针）
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    return angle * sign;
+  }
+
+  // 初始化 Grid 图片旋转效果
+  function initGridImageRotation() {
+    const gridItems = document.querySelectorAll('.gallery.grid .item, .gallery.mode-grid .item');
+    
+    gridItems.forEach(function(item) {
+      const img = item.querySelector('img');
+      
+      if (!img) return;
+      
+      let currentRotation = 0; // 当前旋转角度
+      
+      // 鼠标进入时
+      item.addEventListener('mouseenter', function() {
+        // 生成新的随机角度
+        currentRotation = getRandomRotation();
+        
+        // 应用旋转到图片
+        img.style.transform = `rotate(${currentRotation}deg)`;
+      });
+      
+      // 鼠标离开时
+      item.addEventListener('mouseleave', function() {
+        // 恢复到 0 度
+        currentRotation = 0;
+        
+        // 恢复图片
+        img.style.transform = `rotate(0deg)`;
+      });
+    });
+  }
+
+  // 页面加载完成后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGridImageRotation);
+  } else {
+    initGridImageRotation();
+  }
+
+  // 监听视图切换，重新初始化（因为DOM可能变化）
+  const gallery = document.getElementById('gallery');
+  if (gallery) {
+    const observer = new MutationObserver(function(mutations) {
+      // 当视图切换到grid模式时，重新初始化
+      if (gallery.classList.contains('grid') || gallery.classList.contains('mode-grid')) {
+        initGridImageRotation();
+      }
+    });
+    
+    observer.observe(gallery, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+})();

@@ -6,14 +6,14 @@
   --font-app: "Courier New", Courier, monospace;
   
   /* Colors - light mode (default) */
-  --bg-color: #F4FFD7;
+  --bg-color: #feffd7;
   --text-color: #2d5016;
   --text-color-secondary: rgba(45, 80, 22, 0.8);
   --border-color: rgba(45, 80, 22, 0.1);
   --hover-bg: rgba(45, 80, 22, 0.03);
   --hover-bg-light: rgba(45, 80, 22, 0.05);
-  --lightbox-bg: #F4FFD7;
-  --intro-bg: #F4FFD7;
+  --lightbox-bg: #feffd7;
+  --intro-bg: #feffd7;
   
   /* Skeleton colors */
   --skeleton-1: #e0e0e0;
@@ -398,10 +398,10 @@ main {
    Gallery Container - 保持滚动修复
    ============================================ */
 .gallery-container {
-  /* 🔥 禁止内部滚动，超出内容会被裁剪 */
-  overflow: hidden !important;       /* 不显示滚动条，且超出内容会被裁剪 */
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+  /* 🔥 允许旋转时超出部分可见 */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   height: auto !important;           /* 不固定高度 */
   max-height: none !important;       /* 不限制最大高度 */
   position: static !important;
@@ -466,7 +466,7 @@ main {
   visibility: visible;
   z-index: 3;
   clip-path: inset(0 0 0 0);
-  transition: opacity var(--fade-in-duration) ease, filter var(--fade-in-duration) ease, clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--fade-in-duration) ease, filter var(--fade-in-duration) ease, clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease-out;
 }
 
 .gallery figcaption {
@@ -533,6 +533,9 @@ main {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: visible;
+  padding: 15px;
+  margin: -15px;
 }
 
 .gallery.grid img,
@@ -542,6 +545,8 @@ main {
   cursor: pointer;
   object-fit: cover;
   background: var(--skeleton-1);
+  transition: transform 0.2s ease-out;
+  transform-origin: center center;
 }
 
 .gallery.grid figcaption,
@@ -925,8 +930,18 @@ body.lightbox-opening .gallery-container {
 /* ============================================
    🔥 强制覆盖：确保 gallery 跟页面整体滚动
    ============================================ */
-/* 确保所有 gallery 相关容器都不产生滚动条 */
-main,
+/* 确保所有 gallery 相关容器都不产生滚动条，但允许旋转时超出部分可见 */
+main {
+  position: static !important;     /* 不能 fixed 或 absolute */
+  height: auto !important;         /* 自动高度 */
+  max-height: none !important;     /* 不限制最大高度 */
+  min-height: 0 !important;        /* 防止 flex 拉伸 */
+  overflow: visible !important;     /* 允许旋转时超出部分可见 */
+  overflow-x: visible !important;   /* 水平方向允许超出 */
+  overflow-y: visible !important;   /* 垂直方向允许超出 */
+  flex: none !important;           /* 不参与 flex 高度填充 */
+}
+
 .gallery-container,
 .gallery,
 #gallery,
@@ -938,9 +953,9 @@ main,
   height: auto !important;         /* 自动高度 */
   max-height: none !important;     /* 不限制最大高度 */
   min-height: 0 !important;        /* 防止 flex 拉伸 */
-  overflow: hidden !important;     /* 禁止内部滚动，超出内容会被裁剪 */
-  overflow-x: hidden !important;   /* 水平方向禁止滚动 */
-  overflow-y: hidden !important;   /* 垂直方向禁止滚动 */
+  overflow: visible !important;     /* 允许旋转时超出部分可见 */
+  overflow-x: visible !important;   /* 水平方向允许超出 */
+  overflow-y: visible !important;   /* 垂直方向允许超出 */
   flex: none !important;           /* 不参与 flex 高度填充 */
 }
 
