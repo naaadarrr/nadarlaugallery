@@ -511,10 +511,10 @@ main {
 .gallery.mode-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6rem 2rem;
+  gap: 3rem 1.5rem;
   align-items: start;
-  margin-bottom: -4rem;
-  padding-bottom: 4rem;
+  margin-bottom: -2rem;
+  padding-bottom: 2rem;
   margin-top: 0;
   padding-top: 0;
   /* 🔥 禁止内部滚动，超出内容会被裁剪 */

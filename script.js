@@ -1807,24 +1807,26 @@ function handleHeaderScroll() {
   const currentScrollY = window.scrollY;
   const scrollDelta = currentScrollY - lastHeaderScrollY;
   
+  // Show header at top of page
+  if (currentScrollY < 50) {
+    siteHeader.classList.remove('scrolled-down', 'scrolled-up');
+    lastHeaderScrollY = currentScrollY;
+    return;
+  }
+  
   // Determine scroll direction
   if (scrollDelta > 5) {
-    // Scrolling down
+    // Scrolling down - hide header
     headerScrollDirection = 1;
     if (currentScrollY > 100) { // Only hide after scrolling 100px
       siteHeader.classList.remove('scrolled-up');
       siteHeader.classList.add('scrolled-down');
     }
   } else if (scrollDelta < -5) {
-    // Scrolling up
+    // Scrolling up - hide header (consistent behavior for both grid and list)
     headerScrollDirection = -1;
-    siteHeader.classList.remove('scrolled-down');
-    siteHeader.classList.add('scrolled-up');
-  }
-  
-  // Show header at top of page
-  if (currentScrollY < 50) {
-    siteHeader.classList.remove('scrolled-down', 'scrolled-up');
+    siteHeader.classList.remove('scrolled-up');
+    siteHeader.classList.add('scrolled-down');
   }
   
   lastHeaderScrollY = currentScrollY;
