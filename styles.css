@@ -620,8 +620,8 @@ main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 2rem;
-  padding: 1rem 0;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -630,7 +630,7 @@ main {
 
 .gallery.list img,
 .gallery.mode-list img {
-  width: 200px;
+  width: 140px;
   height: auto;
   cursor: pointer;
   object-fit: cover;
@@ -694,7 +694,7 @@ main {
   
   .gallery.list img,
   .gallery.mode-list img {
-    width: 150px;
+    width: 100px;
   }
 }
 
