@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Photo Gallery</title>
+  <link rel="icon" href="favicon.ico" />
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <!-- Intro page overlay -->
   <div id="intro-page" class="intro-page">
     <div class="intro-content">
       <div class="intro-text">
         <p class="intro-paragraph fade-in">In the autumn of 2024, I left the place where I was born and raised.</p>
-        <p class="intro-paragraph fade-in">In the months that followed, the ordinary routes of daily commutes and the quiet corners found during weekend wanderings became new landscapes to me. I began to notice how light shifted across streets I had never walked before, how strangers carried fragments of untold stories in their gestures, and how each fleeting scene could hold a trace of time.</p>
-        <p class="intro-paragraph fade-in">Photography became my way of gathering these fragments — stitching together moments so they would not dissolve into forgetfulness. By arranging them within a narrative, I seek to explore how stories, even the smallest ones, can reshape the way we see our everyday lives. Each image is not only a record, but also an unanswered question: What changes when we choose to look closely?</p>
+        <p class="intro-paragraph fade-in">In the months that followed, the ordinary routes of daily commutes and the
+          quiet corners found during weekend wanderings became new landscapes to me. I began to notice how light shifted
+          across streets I had never walked before, how strangers carried fragments of untold stories in their gestures,
+          and how each fleeting scene could hold a trace of time.</p>
+        <p class="intro-paragraph fade-in">Photography became my way of gathering these fragments — stitching together
+          moments so they would not dissolve into forgetfulness. By arranging them within a narrative, I seek to explore
+          how stories, even the smallest ones, can reshape the way we see our everyday lives. Each image is not only a
+          record, but also an unanswered question: What changes when we choose to look closely?</p>
       </div>
       <button id="enter-btn" class="enter-btn fade-in-button" aria-label="Enter gallery">Enter</button>
     </div>
@@ -27,18 +36,26 @@
     <div class="header-controls">
       <!-- Theme toggle button -->
       <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 1v2M8 13v2M15 8h-2M3 8H1M13.364 2.636l-1.414 1.414M4.05 11.95l-1.414 1.414M13.364 13.364l-1.414-1.414M4.05 4.05L2.636 2.636" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5" />
+          <path
+            d="M8 1v2M8 13v2M15 8h-2M3 8H1M13.364 2.636l-1.414 1.414M4.05 11.95l-1.414 1.414M13.364 13.364l-1.414-1.414M4.05 4.05L2.636 2.636"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
         </svg>
-        <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6.5 1.5C7 3 8 4 9.5 4.5C11 5 12 6 12.5 7.5C12 9 11 10 9.5 10.5C8 11 7 12 6.5 13.5C6 12 5 11 3.5 10.5C2 10 1 9 0.5 7.5C1 6 2 5 3.5 4.5C5 4 6 3 6.5 1.5Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.3"/>
+        <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M6.5 1.5C7 3 8 4 9.5 4.5C11 5 12 6 12.5 7.5C12 9 11 10 9.5 10.5C8 11 7 12 6.5 13.5C6 12 5 11 3.5 10.5C2 10 1 9 0.5 7.5C1 6 2 5 3.5 4.5C5 4 6 3 6.5 1.5Z"
+            stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.3" />
         </svg>
       </button>
       <!-- Segmented control for two modes: Grid, List -->
       <div class="view-toggle" role="tablist" aria-label="Gallery view mode">
-        <button id="btn-grid" class="toggle-btn active" data-text="Grid" aria-pressed="true" aria-label="Grid view">Grid</button>
-        <button id="btn-list" class="toggle-btn" data-text="List" aria-pressed="false" aria-label="List view">List</button>
+        <button id="btn-grid" class="toggle-btn active" data-text="Grid" aria-pressed="true"
+          aria-label="Grid view">Grid</button>
+        <button id="btn-list" class="toggle-btn" data-text="List" aria-pressed="false"
+          aria-label="List view">List</button>
       </div>
     </div>
   </header>
@@ -50,7 +67,8 @@
       <div class="gallery grid mode-grid" id="gallery" aria-busy="true">
         <figure class="item photo-card">
           <div class="skeleton"></div>
-          <img src="assets/images/P:001.jpg" alt="Gallery photo by Nadar Lau" loading="eager" decoding="async" fetchpriority="high" />
+          <img src="assets/images/P:001.jpg" alt="Gallery photo by Nadar Lau" loading="eager" decoding="async"
+            fetchpriority="high" />
           <figcaption>
             <span class="item-number">P:001</span>
             <span class="item-size">1080 × 1440</span>
@@ -215,4 +233,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
